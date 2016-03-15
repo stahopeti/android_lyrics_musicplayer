@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center_horizontal">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/artist_and_title"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:padding="5dp"
+            android:textSize="20dp"
+            android:textAlignment="center"
+            android:layout_alignParentTop="true"
+            android:layout_centerHorizontal="true" />
+
+        <ImageButton
+            android:id="@+id/refresh_button"
+            android:background="@drawable/refreshcirclearrowicon"
+            android:layout_width="63dp"
+            android:layout_height="63dp"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentRight="true"
+            android:layout_alignParentEnd="true" />
+
+        <TableRow
+            android:id="@+id/buttons_tablerow"
+            android:gravity="center|bottom"
+            android:layout_height="wrap_content"
+            android:layout_width="match_parent"
+            android:layout_alignParentBottom="true"
+            android:layout_weight="1"
+            >
+            <!--android:layout_below="@+id/lyricsTextView"-->
+
+            <ImageButton
+                android:id="@+id/seekBackward"
+                android:background="@drawable/backbutton"
+                android:maxHeight="63dp"
+                android:layout_height="63dp"
+                android:layout_width="63dp"
+                />
+
+            <ImageButton
+                android:id="@+id/play_button"
+                android:background="@drawable/playbutton"
+                android:maxHeight="63dp"
+                android:layout_height="63dp"
+                android:layout_width="63dp"
+                />
+
+            <ImageButton
+                android:id="@+id/seekForward"
+                android:background="@drawable/forwardbutton"
+                android:maxHeight="63dp"
+                android:layout_height="63dp"
+                android:layout_width="63dp"
+                />
+
+        </TableRow>
+
+        <ScrollView
+            android:id="@+id/scroll_lyrics"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            android:layout_above="@id/buttons_tablerow"
+            android:layout_below="@+id/refresh_button">
+
+            <TextView
+                android:id="@+id/lyrics_textview"
+                android:textAlignment="center"
+                android:layout_width="match_parent"
+                android:layout_height="fill_parent"
+                />
+
+        </ScrollView>
+
+    </RelativeLayout>
+
+
+
+
+</LinearLayout>

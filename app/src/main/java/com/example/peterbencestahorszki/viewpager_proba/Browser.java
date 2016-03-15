@@ -1,7 +1,12 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
 import android.annotation.TargetApi;
+import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.ContentResolver;
+import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -14,9 +19,12 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by peterbencestahorszki on 2016. 03. 08..
@@ -30,6 +38,7 @@ public class Browser extends Fragment {
     private static ArrayList<String> musicListToBrowse = new ArrayList<String>();
     private ArrayList<MusicFile> musicData = new ArrayList<MusicFile>();
     ContentResolver cR;
+    private MusicFile lastClicked = new MusicFile(null,null,null);
 
     static ViewPager vpagerBrowser;
 
@@ -41,7 +50,6 @@ public class Browser extends Fragment {
         args.putString("someString", title);
         args.putStringArrayList("someList", musicListToBrowse);
         ff.setArguments(args);
-
         vpagerBrowser = vpagerParam;
 
         return ff;
@@ -62,14 +70,19 @@ public class Browser extends Fragment {
             musicListToBrowse.add(getArguments().getStringArrayList("someList").get(i));
 
         }
-        ;
+
+        SharedPreferences sharedpreferences = getActivity().getSharedPreferences("musicPlayerPreferences", Context.MODE_PRIVATE);
+        SharedPreferences.Editor editor = sharedpreferences.edit();
+        editor.putString("Artist", "Válassz");
+        editor.putString("Title", "zenét");
+        editor.putString("Lyrics", "Válassz");
 
     }
 
     // Inflate the view for the fragment based on layout XML
     @TargetApi(Build.VERSION_CODES.M)
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+    public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.browsemusic_fragment, container, false);
 
         list = (ListView) view.findViewById(R.id.list);
@@ -122,10 +135,33 @@ public class Browser extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                vpagerBrowser.setCurrentItem(1);
+                Intent intent = new Intent(getActivity(), PlayMusic.class);
+                Bundle bundle = new Bundle();
+
+
+                bundle.putString("pathForMusic", musicData.get(position).getPath());
+
+                lastClicked = musicData.get(position);
+
+                if (bundle != null) {
+                    intent.putExtras(bundle);
+                    startActivity(intent);
+                }
 
             }
         });
+
+        Button toMusic = (Button) view.findViewById(R.id.zene);
+
+        toMusic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+
+
+            }
+        });
+
         return view;
     }
 
@@ -139,7 +175,6 @@ public class Browser extends Fragment {
     @Override
     public void onStop(){
         super.onStop();
-
         System.out.println("BROWSER ONSTOP");
 
     }

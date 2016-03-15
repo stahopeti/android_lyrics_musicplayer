@@ -31,7 +31,7 @@ public class MainActivity extends AppCompatActivity {
     // ...
 
     public static class MyPagerAdapter extends FragmentPagerAdapter {
-        private static int NUM_ITEMS = 3;
+        private static int NUM_ITEMS = 2;
 
         ViewPager vpagerAdapter;
 
@@ -53,9 +53,9 @@ public class MainActivity extends AppCompatActivity {
                 case 0: // Fragment # 0 - This will show Browser
                     return Browser.newInstance(0, "Page # 1",vpagerAdapter);
                 case 1: // Fragment # 0 - This will show Browser different title
-                    return Player.newInstance(1, "Page # 2");
-                case 2: // Fragment # 1 - This will show Player
-                    return Downloaded.newInstance(2, "Page # 3");
+                    return Downloaded.newInstance(1, "Page # 2");
+//                case 2: // Fragment # 1 - This will show Player
+//                    return Downloaded.newInstance(2, "Page # 3");
                 default:
                     return null;
             }
@@ -66,8 +66,7 @@ public class MainActivity extends AppCompatActivity {
         public CharSequence getPageTitle(int position) {
 
             if(position == 0)return "Böngésző";
-            if(position == 1)return "Zenelejátszó";
-            if(position == 2)return "Letöltött";
+            if(position == 1)return "Letöltött";
 
             return "default";
         }
