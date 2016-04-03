@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">xLyrics</string>
+    <string name="no_internet_message">Nincs internet.</string>
+    <string name="no_lyrics_message">Nem sikerült betölteni a dalszöveget. Lehet nincs meg az adatbázisban. Próbáld újra a frissítés gombbal</string>
+    <string name="tab_name_downloaded">Letöltött</string>
+    <string name="tab_name_browser">Böngésző</string>
+</resources>

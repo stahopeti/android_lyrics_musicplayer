@@ -1,12 +1,8 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
 import android.annotation.TargetApi;
-import android.app.Activity;
-import android.app.ActivityManager;
 import android.content.ContentResolver;
-import android.content.Context;
 import android.content.Intent;
-import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -19,12 +15,11 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ListView;
 
 import java.util.ArrayList;
-import java.util.List;
+
+import static com.example.peterbencestahorszki.viewpager_proba.MainActivity.getMusicAndLyrics;
 
 /**
  * Created by peterbencestahorszki on 2016. 03. 08..
@@ -40,9 +35,8 @@ public class Browser extends Fragment {
     ContentResolver cR;
     private MusicFile lastClicked = new MusicFile(null,null,null);
 
-    static ViewPager vpagerBrowser;
 
-    public static Browser newInstance(int page, String title, ViewPager vpagerParam){
+    public static Browser newInstance(int page, String title){
 
         Browser ff = new Browser();
         Bundle args = new Bundle();
@@ -50,7 +44,6 @@ public class Browser extends Fragment {
         args.putString("someString", title);
         args.putStringArrayList("someList", musicListToBrowse);
         ff.setArguments(args);
-        vpagerBrowser = vpagerParam;
 
         return ff;
 
@@ -70,12 +63,6 @@ public class Browser extends Fragment {
             musicListToBrowse.add(getArguments().getStringArrayList("someList").get(i));
 
         }
-
-        SharedPreferences sharedpreferences = getActivity().getSharedPreferences("musicPlayerPreferences", Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedpreferences.edit();
-        editor.putString("Artist", "Válassz");
-        editor.putString("Title", "zenét");
-        editor.putString("Lyrics", "Válassz");
 
     }
 
@@ -106,7 +93,7 @@ public class Browser extends Fragment {
 
                 while (cursor.moveToNext()){
 
-                    String asd = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)) + " - " +
+                    String asd = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)) + " \n " +
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 
                     System.out.println(asd);
@@ -135,38 +122,60 @@ public class Browser extends Fragment {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                Intent intent = new Intent(getActivity(), PlayMusic.class);
-                Bundle bundle = new Bundle();
-
-
-                bundle.putString("pathForMusic", musicData.get(position).getPath());
-
                 lastClicked = musicData.get(position);
 
-                if (bundle != null) {
-                    intent.putExtras(bundle);
-                    startActivity(intent);
+                Intent intent = new Intent(getActivity(), PlayMusic.class);
+
+                if (lastClicked.getPath() == MainActivity.getMusicPath()) {
+
+                    intent.putExtra("SHOULD_I_START", false);
+
+                } else {
+
+                    MainActivity.setMusicParameters(
+
+                            lastClicked.getPath(),
+                            lastClicked.getArtist(),
+                            lastClicked.getTitle()
+
+                    );
+
+                    MainActivity.stopMusic();
+                    MainActivity.getMusicAndLyrics();
+                    System.out.println("setOnItemClick: " + MainActivity.getLYRICS());
+                    intent.putExtra("SHOULD_I_START", true);
+
                 }
+
+
+                startActivity(intent);
 
             }
         });
+/*
+        TextView currentlyPlaying = (TextView) view.findViewById(R.id.browser_currently_playing);
 
-        Button toMusic = (Button) view.findViewById(R.id.zene);
+        if(MainActivity.isMusicPlaying()) currentlyPlaying.setText(MainActivity.getSongTitle());
 
-        toMusic.setOnClickListener(new View.OnClickListener() {
+        currentlyPlaying.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-
+                Intent intent = new Intent(getActivity(), PlayMusic.class);
+                startActivity(intent);
 
             }
         });
+*/
+
+        //((ImageButton) view.findViewById(R.id.browser_play_stop_button)).setBackgroundResource(R.drawable.playbutton);
 
         return view;
     }
 
     @Override
     public void onResume(){
+
         super.onResume();
         System.out.println("BROWSER ONRESUME");
 
@@ -174,6 +183,7 @@ public class Browser extends Fragment {
 
     @Override
     public void onStop(){
+
         super.onStop();
         System.out.println("BROWSER ONSTOP");
 
@@ -181,6 +191,7 @@ public class Browser extends Fragment {
 
     @Override
     public void onDestroy(){
+
         super.onDestroy();
         System.out.println("BROWSER ONDESTROY");
 
