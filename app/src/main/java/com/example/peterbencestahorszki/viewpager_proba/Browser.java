@@ -2,14 +2,15 @@ package com.example.peterbencestahorszki.viewpager_proba;
 
 import android.annotation.TargetApi;
 import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.Fragment;
-import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -19,30 +20,24 @@ import android.widget.ListView;
 
 import java.util.ArrayList;
 
-import static com.example.peterbencestahorszki.viewpager_proba.MainActivity.getMusicAndLyrics;
-
 /**
  * Created by peterbencestahorszki on 2016. 03. 08..
  */
 public class Browser extends Fragment {
 
     private ListView list;
-    public ArrayAdapter<String> adapter;
-    private String title;
-    private int page;
-    private static ArrayList<String> musicListToBrowse = new ArrayList<String>();
-    private ArrayList<MusicFile> musicData = new ArrayList<MusicFile>();
-    ContentResolver cR;
+    private ArrayAdapter<String> adapter;
+    private static ArrayList<String> musicTitles = new ArrayList<String>();
+    private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
+    private ContentResolver cR;
     private MusicFile lastClicked = new MusicFile(null,null,null);
 
 
-    public static Browser newInstance(int page, String title){
+    public static Browser newInstance(){
 
         Browser ff = new Browser();
         Bundle args = new Bundle();
-        args.putInt("someInt", page);
-        args.putString("someString", title);
-        args.putStringArrayList("someList", musicListToBrowse);
+        args.putStringArrayList("someList", musicTitles);
         ff.setArguments(args);
 
         return ff;
@@ -54,13 +49,10 @@ public class Browser extends Fragment {
 
         super.onCreate(savedInstance);
         System.out.println("BROWSER ONCREATE");
-
-        page = getArguments().getInt("someInt", 0);
-        title = getArguments().getString("someString");
-        musicListToBrowse.clear();
+        musicTitles.clear();
         for (int i = 0; i<getArguments().getStringArrayList("someList").size(); i++) {
 
-            musicListToBrowse.add(getArguments().getStringArrayList("someList").get(i));
+            musicTitles.add(getArguments().getStringArrayList("someList").get(i));
 
         }
 
@@ -70,6 +62,7 @@ public class Browser extends Fragment {
     @TargetApi(Build.VERSION_CODES.M)
     @Override
     public View onCreateView(final LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.browsemusic_fragment, container, false);
 
         list = (ListView) view.findViewById(R.id.list);
@@ -93,108 +86,80 @@ public class Browser extends Fragment {
 
                 while (cursor.moveToNext()){
 
-                    String asd = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)) + " \n " +
+                    String temp = cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)) + " \n " +
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE));
 
-                    System.out.println(asd);
+                    System.out.println(temp);
 
                     int  i = (cursor.getColumnIndexOrThrow(MediaStore.Audio.Media.DATA));
-
-                    //System.out.println(cursor.getString(i));
 
                     MusicFile dummy = new MusicFile(
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)),
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
                             cursor.getString(i));
 
-                    musicData.add(dummy);
-                    musicListToBrowse.add(asd);
+                    musicFilesOnStorage.add(dummy);
+                    musicTitles.add(temp);
                 }
 
             }
 
         }
 
-        adapter = new ArrayAdapter<String>(this.getContext(), R.layout.rowlayout_musiclist, musicListToBrowse);
+        adapter = new ArrayAdapter<String>(this.getContext(), R.layout.rowlayout_musiclist, musicTitles);
         list.setAdapter(adapter);
 
         list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
             @Override
             public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
 
-                lastClicked = musicData.get(position);
+                lastClicked = musicFilesOnStorage.get(position);
+
+                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
+                SharedPreferences.Editor editor = sp.edit();
+
+                String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
+
+                System.out.println("Current sharedpref music path: " + sharedPrefPath);
 
                 Intent intent = new Intent(getActivity(), PlayMusic.class);
 
-                if (lastClicked.getPath() == MainActivity.getMusicPath()) {
+
+                System.out.println("LAST CLICKED PATH: \n" +
+                    lastClicked.getPath());
+                editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
+
+                if (lastClicked.getPath() == sharedPrefPath) {
 
                     intent.putExtra("SHOULD_I_START", false);
 
+
                 } else {
 
-                    MainActivity.setMusicParameters(
+                    editor.putString(Constants.PLAYING_SONG_ARTIST, lastClicked.getArtist());
+                    editor.putString(Constants.PLAYING_SONG_TITLE, lastClicked.getTitle());
+                    editor.putString(Constants.PLAYING_SONG_LYRICS, null);
 
-                            lastClicked.getPath(),
-                            lastClicked.getArtist(),
-                            lastClicked.getTitle()
+                    MainActivity.setMusicParameters();
 
-                    );
-
-                    MainActivity.stopMusic();
+                    if(sharedPrefPath != null) MainActivity.stopMusic();
                     MainActivity.getMusicAndLyrics();
-                    System.out.println("setOnItemClick: " + MainActivity.getLYRICS());
+//                    System.out.println("setOnItemClick: " + sp.getString(Constants.PLAYING_SONG_LYRICS, null));
                     intent.putExtra("SHOULD_I_START", true);
+                    editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
+                    editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
 
                 }
 
 
+                editor.commit();
+
                 startActivity(intent);
 
             }
         });
-/*
-        TextView currentlyPlaying = (TextView) view.findViewById(R.id.browser_currently_playing);
-
-        if(MainActivity.isMusicPlaying()) currentlyPlaying.setText(MainActivity.getSongTitle());
-
-        currentlyPlaying.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                Intent intent = new Intent(getActivity(), PlayMusic.class);
-                startActivity(intent);
-
-            }
-        });
-*/
-
-        //((ImageButton) view.findViewById(R.id.browser_play_stop_button)).setBackgroundResource(R.drawable.playbutton);
 
         return view;
-    }
-
-    @Override
-    public void onResume(){
-
-        super.onResume();
-        System.out.println("BROWSER ONRESUME");
-
-    }
-
-    @Override
-    public void onStop(){
-
-        super.onStop();
-        System.out.println("BROWSER ONSTOP");
-
-    }
-
-    @Override
-    public void onDestroy(){
-
-        super.onDestroy();
-        System.out.println("BROWSER ONDESTROY");
-
     }
 
 }

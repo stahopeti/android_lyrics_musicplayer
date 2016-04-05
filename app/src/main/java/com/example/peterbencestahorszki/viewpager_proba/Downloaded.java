@@ -17,15 +17,11 @@ import android.widget.TextView;
  */
 public class Downloaded extends Fragment {
 
-    private String title;
-    private int page;
 
-    public static Downloaded newInstance(int page, String title){
+    public static Downloaded newInstance(){
 
         Downloaded tf = new Downloaded();
         Bundle args = new Bundle();
-        args.putInt("someInt", page);
-        args.putString("someString", title);
         tf.setArguments(args);
         return tf;
 
@@ -35,8 +31,6 @@ public class Downloaded extends Fragment {
     public void onCreate(Bundle savedInstance){
 
         super.onCreate(savedInstance);
-        page = getArguments().getInt("someInt", 0);
-        title = getArguments().getString("someString");
 
     }
 
@@ -46,14 +40,6 @@ public class Downloaded extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.browsedownloaded_fragment, container, false);
         TextView tvLabel = (TextView) view.findViewById(R.id.tvLabel3);
-//        tvLabel.setText("Letöltött");
-
-  /*      Animation animation = AnimationUtils.loadAnimation(this.getContext(), R.anim.rotate_disc);
-        animation.startNow();
-
-        view.invalidate();
-*/
-
 
         return view;
     }

@@ -1,10 +1,8 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.content.res.Resources;
-import android.media.MediaMetadataRetriever;
+import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
@@ -13,7 +11,6 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
-import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
 import android.view.View;
@@ -25,7 +22,6 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
-import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -34,47 +30,17 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity {
 
-    private static Context context;
+    public static Context context;
 
     FragmentPagerAdapter adapterViewPager;
     ViewPager vpPager = null;
-    public static int number = 0;
-    private static String artist;
-    private static String musicPath = null;
-    private static String title = null;
-    private static String LYRICS;
-    private static boolean isMusicPlaying = false;
-    public static MediaPlayer music;
-    private static int musicPosition;
-    public static String tabBrowser;
-    public static String tabDownloaded;
-    public static boolean shouldIRefreshLyrics = true;
-    public static boolean playActivityHasStarted = false;
 
+    static MediaPlayer music;
+    static String tabBrowser;
+    static String tabDownloaded;
 
-    public static String getArtist() {
-        return artist;
-    }
-
-    public static String getMusicPath() {
-        return musicPath;
-    }
-
-    public static String getSongTitle() {
-        return title;
-    }
-
-    public static String getLYRICS() {
-        return LYRICS;
-    }
-
-    public static boolean isMusicPlaying() {
-        return isMusicPlaying;
-    }
-
-    public static int getMusicPosition() {
-        return musicPosition;
-    }
+    static SharedPreferences sp;
+    static SharedPreferences.Editor editor;
 
     public static void setTabName(String tB, String tD){
 
@@ -86,42 +52,27 @@ public class MainActivity extends AppCompatActivity {
     /* beállítja 0-ra a pozíciót, és leállítja a lejátszást*/
     public static void stopMusic(){
 
+        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
         if(isMusicPlaying) {
 
             music.seekTo(0);
             music.stop();
-            isMusicPlaying = false;
-
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
+            editor.commit();
         }
-    }
-
-    /* beállítja 0-ra a pozíciót, és elindítja a lejátszást*/
-    public static void startMusic(){
-
-        if(!isMusicPlaying){
-
-            music.seekTo(0);
-            music.start();
-            isMusicPlaying = true;
-
-        }
-
     }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         vpPager = (ViewPager) findViewById(R.id.vpPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), vpPager);
         vpPager.setAdapter(adapterViewPager);
         context = getApplicationContext();
-        final ImageButton docked_button;
-/*
-        PagerTabStrip var = (PagerTabStrip) findViewById(R.id.pager_header);
+        final ImageButton docked_button = (ImageButton) findViewById(R.id.docked_playButton);
 
-        var.setTabIndicatorColorResource(R.color.textColor);
-        var.setDrawFullUnderline(false);*/
 
         setTabName(getString(R.string.tab_name_browser), getString(R.string.tab_name_downloaded));
 
@@ -131,8 +82,9 @@ public class MainActivity extends AppCompatActivity {
         playing.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
 
-                if (isMusicPlaying()) {
+                if (isMusicPlaying) {
 
                     Intent intent = new Intent(context, PlayMusic.class);
                     intent.putExtra("SHOULD_I_START", false);
@@ -142,15 +94,16 @@ public class MainActivity extends AppCompatActivity {
             }
         });
 
-        docked_button = (ImageButton) findViewById(R.id.docked_playButton);
-
         docked_button.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
-                if (!isMusicPlaying()){
+                Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+                Boolean hasPlayActivityStarted = sp.getBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, false);
 
-                    if(playActivityHasStarted){
+                if (!isMusicPlaying){
+
+                    if(hasPlayActivityStarted){
 
                         docked_button.setBackgroundResource(R.drawable.pausebutton);
                         playMusic();
@@ -167,15 +120,24 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
+        sp = getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
+        editor = sp.edit();
+        editor.putString(Constants.PLAYING_SONG_PATH, null);
+        editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
+        editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, false);
+        editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
+        editor.putString(Constants.PLAYING_SONG_TITLE, null);
+        editor.putString(Constants.PLAYING_SONG_LYRICS, null);
+        editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
+        editor.commit();
+
     }
 
-    public static void setMusicParameters(String pathParam, String artistParam, String titleParam){
+    public static void setMusicParameters(){
 
-        musicPath = pathParam;
-        artist = artistParam;
-        title = titleParam;
-        musicPosition = 0;
-        if(isMusicPlaying) music.stop();
+        editor.putInt(Constants.PLAYING_MUSIC_POSITION, 0);
+        if(sp.getBoolean(Constants.IS_MUSIC_PLAYING, false)) music.stop();
+        editor.commit();
 
     }
 
@@ -192,6 +154,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     public static void getMusicAndLyrics(){
+
         if(isInternetUp()){
 
             Thread thread = new  Thread(new Runnable(){
@@ -201,15 +164,19 @@ public class MainActivity extends AppCompatActivity {
                 public void run() {
                     try{
 
-                        LYRICS = null;
+                        String LYRICS = null;
                         while(LYRICS==null){
                             System.out.println("VAN INTERNET");
                             LYRICS = getSongLyrics(
-                                    artist,//((TextView) findViewById(R.id.artist)).getText().toString(),
-                                    title//((TextView) findViewById(R.id.title)).getText().toString()
+                                    sp.getString(Constants.PLAYING_SONG_ARTIST, null),//((TextView) findViewById(R.id.artist)).getText().toString(),
+                                    sp.getString(Constants.PLAYING_SONG_TITLE, null)//((TextView) findViewById(R.id.title)).getText().toString()
 
                             );
                         }
+                        System.out.println("PUTTING STRING IN PREFERENCES");
+                        editor.putString(Constants.PLAYING_SONG_LYRICS, LYRICS);
+                        editor.commit();
+                        System.out.println("COMMITED EDITOR !!! COMMITED EDITOR !!!");
 
                     }catch(Exception e){
                         e.printStackTrace();
@@ -229,26 +196,32 @@ public class MainActivity extends AppCompatActivity {
 
     public static void playMusic(){
 
+        String path = sp.getString(Constants.PLAYING_SONG_PATH, null);
+        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+        int musicPosition = sp.getInt(Constants.PLAYING_MUSIC_POSITION, 0);
+
         if(!isMusicPlaying) {
 
-            Uri musicUri = Uri.parse(musicPath);
+            Uri musicUri = Uri.parse(path);
 
             music = MediaPlayer.create(context, musicUri);
 
             music.seekTo(musicPosition);
             music.start();
-            isMusicPlaying=true;
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
 
         } else {
 
-            musicPosition = music.getCurrentPosition();
+            editor.putInt(Constants.PLAYING_MUSIC_POSITION, music.getCurrentPosition());
             music.stop();
-            isMusicPlaying=false;
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
+
         }
 
-
+        editor.commit();
     }
 
+    //Inserted code, from api README
     public static String getSongLyrics( String band, String songTitle) throws IOException {
         List<String> lyrics= new ArrayList<String>();
 
@@ -278,8 +251,6 @@ public class MainActivity extends AppCompatActivity {
 
         private static int NUM_ITEMS = 2;
 
-        ViewPager vpagerAdapter;
-
         public MyPagerAdapter(FragmentManager fragmentManager, ViewPager vpager) {
             super(fragmentManager);
             vpager = vpager;
@@ -296,11 +267,9 @@ public class MainActivity extends AppCompatActivity {
         public Fragment getItem(int position) {
             switch (position) {
                 case 0: // Fragment # 0 - This will show Browser
-                    return Browser.newInstance(0, "Page # 1");
-                case 1: // Fragment # 0 - This will show Browser different title
-                    return Downloaded.newInstance(1, "Page # 2");
-            //    case 2: // Fragment # 1 - This will show Player
-            //       return Downloaded.newInstance(2, "Page # 3");
+                    return Browser.newInstance();
+                case 1: // Fragment # 0 - This will show Downloaded
+                    return Downloaded.newInstance();
                 default:
                     return null;
             }
@@ -323,20 +292,24 @@ public class MainActivity extends AppCompatActivity {
 
         super.onResume();
 
-        if(!isMusicPlaying()){
+        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+
+        if(!isMusicPlaying){
 
             (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.playbutton);
 
         }
-        if(isMusicPlaying()){
+        if(isMusicPlaying){
 
             (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.pausebutton);
 
         }
 
+        String title = sp.getString(Constants.PLAYING_SONG_TITLE, null);
+
         if(title != null) {
-            ((TextView) findViewById(R.id.docked_textview)).setText(getSongTitle());
-        } else ((TextView) findViewById(R.id.docked_textview)).setText("Nem szól semmi");
+            ((TextView) findViewById(R.id.docked_textview)).setText(title);
+        } else ((TextView) findViewById(R.id.docked_textview)).setText(getString(R.string.docked_nothing_playing));
 
     }
 

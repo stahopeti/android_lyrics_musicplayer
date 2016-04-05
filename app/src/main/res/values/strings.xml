@@ -4,4 +4,5 @@
     <string name="no_lyrics_message">No lyrics.</string>
     <string name="tab_name_downloaded">Downloaded</string>
     <string name="tab_name_browser">Browser</string>
+    <string name="docked_nothing_playing">Nothing is playing</string>
 </resources>

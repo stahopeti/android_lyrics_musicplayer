@@ -1,5 +1,6 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
+import android.content.SharedPreferences;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -13,28 +14,24 @@ import android.widget.TextView;
 
 import org.w3c.dom.Text;
 
+import javax.crypto.Cipher;
+
 public class PlayMusic extends AppCompatActivity {
 
-    String musicPath = null;
-
-    int musicPosition = 0;
-    private String artist;
-    private String song;
     private String LYRICS = null;
-    private boolean shouldIStart = true;
-    private boolean isBakelitForeground = true;
+    private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
+    private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        MainActivity.playActivityHasStarted = true;
-        artist = MainActivity.getArtist();
-        song = MainActivity.getSongTitle();
-
+        editor = sp.edit();
+        editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);
+        editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
         Bundle bundle = getIntent().getExtras();
 
-        LYRICS = MainActivity.getLYRICS();
+        LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
 
         setContentView(R.layout.activity_play_music);
 
@@ -43,14 +40,20 @@ public class PlayMusic extends AppCompatActivity {
         findViewById(R.id.seekBackward).setOnClickListener(seekBackwards);
         findViewById(R.id.seekForward).setOnClickListener(seekForward);
 
-        ((TextView) findViewById(R.id.artist_and_title)).setText(artist + "\n" + song);
+        ((TextView) findViewById(R.id.artist_and_title)).setText(
+                sp.getString(Constants.PLAYING_SONG_ARTIST, null) +
+                "\n" +
+                sp.getString(Constants.PLAYING_SONG_TITLE, null));
 
         (findViewById(R.id.artist_and_title)).invalidate();
 
         if(bundle.getBoolean("SHOULD_I_START")) playMusic();
 
-        if(!MainActivity.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
-        if(MainActivity.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
+
+        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+
+        if(!isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
+        if(isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
 
         TextView bkelit = (TextView) findViewById(R.id.bakelit_textview);
         //TextView lyricsTv = (TextView) findViewById(R.id.lyrics_textview);
@@ -66,6 +69,15 @@ public class PlayMusic extends AppCompatActivity {
 
         RelativeLayout myLL = (RelativeLayout) findViewById(R.id.myLayout);
 
+        if(sp.getBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false)){
+
+            setBakelitForeground();
+
+            }else{
+
+            setBakelitBackground();
+
+        }
 
         myLL.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -73,26 +85,20 @@ public class PlayMusic extends AppCompatActivity {
 
                 System.out.println("BAKELIT VIEW PRESSED");
 
-                if (isBakelitForeground) {
+                if (sp.getBoolean(Constants.IS_BAKELIT_FOREGROUND, false)) {
 
-                    ((ScrollView) findViewById(R.id.scroll_lyrics)).setAlpha(1);
-                    ((TextView) findViewById(R.id.lyrics_textview)).setAlpha(1);
-                    ((TextView) findViewById(R.id.bakelit_textview)).setAlpha(0);
-                    isBakelitForeground = false;
-                    refreshLyrics();
+                    setBakelitBackground();
 
                 } else {
 
-                    ((ScrollView) findViewById(R.id.scroll_lyrics)).setAlpha(0);
-                    ((TextView) findViewById(R.id.lyrics_textview)).setAlpha(0);
-                    ((TextView) findViewById(R.id.bakelit_textview)).setAlpha(1);
-                    isBakelitForeground = true;
+                    setBakelitForeground();
 
                 }
 
             }
         });
 
+        editor.commit();
         refreshLyrics();
 
     }
@@ -111,6 +117,8 @@ public class PlayMusic extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
+            int musicPosition;
+
             musicPosition = MainActivity.music.getCurrentPosition();
             MainActivity.music.seekTo(musicPosition + 500);
 
@@ -123,6 +131,8 @@ public class PlayMusic extends AppCompatActivity {
     View.OnClickListener seekBackwards = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
+
+            int musicPosition;
 
             musicPosition = MainActivity.music.getCurrentPosition();
             MainActivity.music.seekTo(musicPosition - 500);
@@ -141,42 +151,70 @@ public class PlayMusic extends AppCompatActivity {
 
         }
 
-
-
     };
+
+    private void setBakelitBackground(){
+
+        (findViewById(R.id.scroll_lyrics)).setAlpha(1);
+        (findViewById(R.id.lyrics_textview)).setAlpha(1);
+        (findViewById(R.id.bakelit_textview)).setAlpha(0);
+        editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, false);
+        editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false);
+        editor.commit();
+        refreshLyrics();
+
+    }
+
+
+    private void setBakelitForeground(){
+
+        (findViewById(R.id.scroll_lyrics)).setAlpha(0);
+        (findViewById(R.id.lyrics_textview)).setAlpha(0);
+        (findViewById(R.id.bakelit_textview)).setAlpha(1);
+        editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
+        editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
+        editor.commit();
+
+    }
 
     private void refreshLyrics(){
 
-        if(MainActivity.shouldIRefreshLyrics) {
+        if(sp.getBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true)) {
             MainActivity.getMusicAndLyrics();
-            LYRICS = MainActivity.getLYRICS();
+            LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
             ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
             if (LYRICS != null)
-                MainActivity.shouldIRefreshLyrics = false;
+                editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS,false);
         }
+        editor.commit();
     }
 
     private void playMusic(){
 
-        MainActivity.playMusic();
-        if(!MainActivity.isMusicPlaying()){
+        Boolean isMusicPlaying
+                = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+
+
+
+        if(isMusicPlaying){
 
             (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.playbutton);
 
         }
-        if(MainActivity.isMusicPlaying()){
+        if(!isMusicPlaying){
 
             (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.pausebutton);
 
         }
-
+        MainActivity.playMusic();
     }
 
     @Override
     public void onDestroy(){
 
         super.onDestroy();
-        MainActivity.shouldIRefreshLyrics = true;
+        editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
+        editor.commit();
 
     }
 

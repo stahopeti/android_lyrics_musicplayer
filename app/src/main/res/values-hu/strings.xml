@@ -4,4 +4,5 @@
     <string name="no_lyrics_message">Nem sikerült betölteni a dalszöveget. Lehet nincs meg az adatbázisban. Próbáld újra a frissítés gombbal</string>
     <string name="tab_name_downloaded">Letöltött</string>
     <string name="tab_name_browser">Böngésző</string>
+    <string name="docked_nothing_playing">Nem szól zene</string>
 </resources>
