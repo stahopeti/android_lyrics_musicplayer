@@ -2,6 +2,7 @@ package com.example.peterbencestahorszki.viewpager_proba;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Resources;
 import android.media.MediaMetadataRetriever;
 import android.media.MediaPlayer;
@@ -12,8 +13,11 @@ import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
+import android.support.v4.view.PagerTabStrip;
 import android.support.v4.view.ViewPager;
 import android.support.v7.app.AppCompatActivity;
+import android.view.View;
+import android.widget.ImageButton;
 import android.widget.TextView;
 
 import org.jsoup.Jsoup;
@@ -21,6 +25,7 @@ import org.jsoup.nodes.Document;
 import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
+import org.w3c.dom.Text;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -35,14 +40,16 @@ public class MainActivity extends AppCompatActivity {
     ViewPager vpPager = null;
     public static int number = 0;
     private static String artist;
-    private static String musicPath;
-    private static String title;
+    private static String musicPath = null;
+    private static String title = null;
     private static String LYRICS;
     private static boolean isMusicPlaying = false;
     public static MediaPlayer music;
     private static int musicPosition;
     public static String tabBrowser;
     public static String tabDownloaded;
+    public static boolean shouldIRefreshLyrics = true;
+    public static boolean playActivityHasStarted = false;
 
 
     public static String getArtist() {
@@ -109,8 +116,56 @@ public class MainActivity extends AppCompatActivity {
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), vpPager);
         vpPager.setAdapter(adapterViewPager);
         context = getApplicationContext();
+        final ImageButton docked_button;
+/*
+        PagerTabStrip var = (PagerTabStrip) findViewById(R.id.pager_header);
 
-        setTabName(getString(R.string.tab_name_browser),getString(R.string.tab_name_downloaded));
+        var.setTabIndicatorColorResource(R.color.textColor);
+        var.setDrawFullUnderline(false);*/
+
+        setTabName(getString(R.string.tab_name_browser), getString(R.string.tab_name_downloaded));
+
+
+        TextView playing = (TextView) findViewById(R.id.docked_textview);
+
+        playing.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (isMusicPlaying()) {
+
+                    Intent intent = new Intent(context, PlayMusic.class);
+                    intent.putExtra("SHOULD_I_START", false);
+                    startActivity(intent);
+                }
+
+            }
+        });
+
+        docked_button = (ImageButton) findViewById(R.id.docked_playButton);
+
+        docked_button.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+
+                if (!isMusicPlaying()){
+
+                    if(playActivityHasStarted){
+
+                        docked_button.setBackgroundResource(R.drawable.pausebutton);
+                        playMusic();
+
+                    }
+
+                } else {
+
+                    docked_button.setBackgroundResource(R.drawable.playbutton);
+                    playMusic();
+
+                }
+            }
+
+        });
 
     }
 
@@ -263,5 +318,26 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    @Override
+    public void onResume(){
+
+        super.onResume();
+
+        if(!isMusicPlaying()){
+
+            (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.playbutton);
+
+        }
+        if(isMusicPlaying()){
+
+            (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.pausebutton);
+
+        }
+
+        if(title != null) {
+            ((TextView) findViewById(R.id.docked_textview)).setText(getSongTitle());
+        } else ((TextView) findViewById(R.id.docked_textview)).setText("Nem szól semmi");
+
+    }
 
 }

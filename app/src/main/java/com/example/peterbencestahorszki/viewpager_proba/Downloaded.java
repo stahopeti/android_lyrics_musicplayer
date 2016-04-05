@@ -5,6 +5,11 @@ import android.support.v4.app.Fragment;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
+import android.view.animation.LinearInterpolator;
+import android.view.animation.RotateAnimation;
 import android.widget.TextView;
 
 /**
@@ -41,7 +46,15 @@ public class Downloaded extends Fragment {
                              Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.browsedownloaded_fragment, container, false);
         TextView tvLabel = (TextView) view.findViewById(R.id.tvLabel3);
-        tvLabel.setText("Letöltött");
+//        tvLabel.setText("Letöltött");
+
+  /*      Animation animation = AnimationUtils.loadAnimation(this.getContext(), R.anim.rotate_disc);
+        animation.startNow();
+
+        view.invalidate();
+*/
+
+
         return view;
     }
 

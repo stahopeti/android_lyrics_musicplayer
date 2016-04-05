@@ -3,9 +3,26 @@
     android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:gravity="center"
-    android:background="@color/layoutBackground"
+    android:paddingLeft="16dp"
+    android:paddingRight="16dp"
+    android:background="@color/textColor"
     >
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_name_browser"
+            android:textColor="@color/layoutBackground"
+            android:textSize="35dp"
+            />
+
+    </RelativeLayout>
 
     <RelativeLayout
         android:layout_width="match_parent"
@@ -15,8 +32,11 @@
 
         <ListView
             android:id="@+id/list"
+            android:divider="@layout/divider_gradient"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:dividerHeight="2dp"
+            android:scrollIndicators="none"
             >
 
         </ListView>

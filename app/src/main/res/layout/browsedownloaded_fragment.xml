@@ -5,11 +5,27 @@
     android:gravity="center"
     >
 
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="50dp"
+        android:layout_gravity="center"
+        android:gravity="center">
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/tab_name_downloaded"
+            android:textColor="@color/layoutBackground"
+            android:textSize="35dp"
+            />
+
+    </RelativeLayout>
+
     <TextView
         android:id="@+id/tvLabel3"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:textColor="@color/colorAccent"
+        android:background="@drawable/record_clipart_sized"
         />
 
 </LinearLayout>

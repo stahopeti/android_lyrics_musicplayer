@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">xLyrics</string>
-    <string name="no_internet_message">1.</string>
-    <string name="no_lyrics_message">2</string>
-    <string name="tab_name_downloaded">3</string>
-    <string name="tab_name_browser">4</string>
+    <string name="no_internet_message">No internet connection.</string>
+    <string name="no_lyrics_message">No lyrics.</string>
+    <string name="tab_name_downloaded">Downloaded</string>
+    <string name="tab_name_browser">Browser</string>
 </resources>
