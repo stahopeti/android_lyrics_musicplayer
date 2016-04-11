@@ -23,6 +23,7 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
@@ -66,7 +67,30 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
 
         super.onCreate(savedInstanceState);
+        System.out.println("MainActivity ONCREATE");
+
         setContentView(R.layout.activity_main);
+
+        if(savedInstanceState == null){
+
+            System.out.println("SAVED INSTANCE STATE IS NULL");
+
+        }
+
+        if(savedInstanceState!=null){
+
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING,
+                    savedInstanceState.getBoolean(Constants.WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON));
+            editor.putString(Constants.PLAYING_SONG_TITLE,
+                    savedInstanceState.getString(Constants.TITLE_BEFORE_BACK_BUTTON));
+
+            editor.commit();
+
+            System.out.println("IS MUSIC PLAYING: " + savedInstanceState.getBoolean(Constants.WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON));
+            System.out.println("PLAYING SONG TITLE: " + savedInstanceState.getString(Constants.TITLE_BEFORE_BACK_BUTTON));
+
+        }
+
         vpPager = (ViewPager) findViewById(R.id.vpPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), vpPager);
         vpPager.setAdapter(adapterViewPager);
@@ -120,7 +144,7 @@ public class MainActivity extends AppCompatActivity {
 
         });
 
-        sp = getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
+        sp = getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_APPEND);
         editor = sp.edit();
         editor.putString(Constants.PLAYING_SONG_PATH, null);
         editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
@@ -287,10 +311,73 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private void putLyricsInFile() throws IOException {
+
+        String file = sp.getString(Constants.PLAYING_SONG_TITLE, null) + ".txt";
+        FileOutputStream out = openFileOutput(file,
+                Context.MODE_PRIVATE
+        );
+
+        out.write(sp.getString(Constants.PLAYING_SONG_LYRICS, null).getBytes());
+        out.close();
+    }
+
+    @Override
+    public void onStop(){
+
+        super.onStop();
+        System.out.println("Main Activity ONSTOP");
+
+    }
+
+    @Override
+    public void onDestroy(){
+
+        super.onDestroy();
+
+        Bundle savedInstance = new Bundle();
+
+
+        System.out.println("Main Activity ONDESTROY");
+
+    }
+
+    @Override
+    public void onSaveInstanceState(Bundle savedInstanceState) {
+
+        System.out.println("ON SAVE INSTANCE");
+
+        super.onSaveInstanceState(savedInstanceState);
+
+        savedInstanceState.putBoolean(Constants.WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON,
+                sp.getBoolean(Constants.IS_MUSIC_PLAYING, false));
+        System.out.println("IS MUSIC PLAYING ON SAVING INSTANCE: "
+                + sp.getBoolean(Constants.IS_MUSIC_PLAYING, false));
+
+        savedInstanceState.putString(Constants.TITLE_BEFORE_BACK_BUTTON,
+                sp.getString(Constants.PLAYING_SONG_TITLE, null));
+        System.out.println("TITLE ON SAVING INSTANCE: "
+                + sp.getString(Constants.PLAYING_SONG_TITLE, null));
+
+        savedInstanceState.putString(Constants.ARTIST_BEFORE_BACK_BUTTON,
+                sp.getString(Constants.PLAYING_SONG_ARTIST, null));
+        System.out.println("ARTIST ON SAVING INSTANCE: "
+                + sp.getString(Constants.PLAYING_SONG_ARTIST, null));
+
+        savedInstanceState.putString(Constants.LYRICS_BEFORE_BACK_BUTTON,
+                sp.getString(Constants.PLAYING_SONG_LYRICS, null));
+        System.out.println("LYRICS ON SAVING INSTANCE: "
+                + "asdLYRICS");
+    }
+
     @Override
     public void onResume(){
 
         super.onResume();
+
+
+
+        System.out.println("MainActivity ONRESUME");
 
         Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
 

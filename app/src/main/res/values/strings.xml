@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">xLyrics</string>
     <string name="no_internet_message">No internet connection.</string>
-    <string name="no_lyrics_message">No lyrics.</string>
+    <string name="no_lyrics_message">Couldn\'t load lyrics. Maybe it isn\'t in our database. Please try again with the refresh button!</string>
     <string name="tab_name_downloaded">Downloaded</string>
     <string name="tab_name_browser">Browser</string>
     <string name="docked_nothing_playing">Nothing is playing</string>

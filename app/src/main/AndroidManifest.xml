@@ -3,15 +3,17 @@
     package="com.example.peterbencestahorszki.viewpager_proba"
     android:screenOrientation="portrait">
 
-    <uses-permission android:name="android.permission.WAKE_LOCK" />
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
+
+    <!--android:allowBackup="true"-->
+
     <application
-        android:allowBackup="true"
         android:icon="@mipmap/ic_launcher"
         android:label="xLyrics"
+        android:launchMode="singleTop"
         android:supportsRtl="true"
         android:theme="@style/AppTheme">
         <activity android:name=".MainActivity"
@@ -23,7 +25,9 @@
             </intent-filter>
         </activity>
         <activity android:name=".PlayMusic"
-            android:screenOrientation="portrait"></activity>
+            android:screenOrientation="portrait">
+
+        </activity>
     </application>
 
 </manifest>

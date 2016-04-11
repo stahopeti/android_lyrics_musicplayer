@@ -45,5 +45,22 @@ public class Downloaded extends Fragment {
     }
 
 
+    @Override
+    public void onResume(){
+
+        super.onResume();
+
+        System.out.println("DOWNLOADED ONRESUME");
+
+    }
+
+    @Override
+    public void onPause(){
+
+        super.onPause();
+
+        System.out.println("DOWNLOADED ONPAUSE");
+
+    }
 
 }

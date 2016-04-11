@@ -5,6 +5,19 @@ package com.example.peterbencestahorszki.viewpager_proba;
  */
 public class Constants {
 
+    /*
+    SavedInstance
+    */
+    public static final String WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON = "WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON";
+    public static final String TITLE_BEFORE_BACK_BUTTON = "TITLE_BEFORE_BACK_BUTTON";
+    public static final String ARTIST_BEFORE_BACK_BUTTON = "ARTIST_BEFORE_BACK_BUTTON";
+    public static final String LYRICS_BEFORE_BACK_BUTTON = "LYRICS_BEFORE_BACK_BUTTON";
+
+
+    /*
+    SharedPreferences
+    */
+
     public static final String XLYRCS_SHARED_PREFS = "XLYRICS_SHARED_PREFS";
 
     public static final String PLAYING_SONG_ARTIST = "PLAYING_SONG_ARTIST";

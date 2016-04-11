@@ -7,19 +7,14 @@ import android.view.View;
 import android.view.animation.Animation;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
-import android.widget.LinearLayout;
+import android.widget.ImageButton;
 import android.widget.RelativeLayout;
-import android.widget.ScrollView;
 import android.widget.TextView;
-
-import org.w3c.dom.Text;
-
-import javax.crypto.Cipher;
 
 public class PlayMusic extends AppCompatActivity {
 
     private String LYRICS = null;
-    private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
+    private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_APPEND);
     private SharedPreferences.Editor editor;
 
     @Override
@@ -36,7 +31,6 @@ public class PlayMusic extends AppCompatActivity {
         setContentView(R.layout.activity_play_music);
 
         findViewById(R.id.play_button).setOnClickListener(playStopMusic);
-        //findViewById(R.id.refresh_button).setOnClickListener(refreshButtonListener);
         findViewById(R.id.seekBackward).setOnClickListener(seekBackwards);
         findViewById(R.id.seekForward).setOnClickListener(seekForward);
 
@@ -49,14 +43,12 @@ public class PlayMusic extends AppCompatActivity {
 
         if(bundle.getBoolean("SHOULD_I_START")) playMusic();
 
-
         Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
 
         if(!isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
         if(isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
 
-        TextView bkelit = (TextView) findViewById(R.id.bakelit_textview);
-        //TextView lyricsTv = (TextView) findViewById(R.id.lyrics_textview);
+        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
 
         RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
@@ -65,9 +57,12 @@ public class PlayMusic extends AppCompatActivity {
         ra.setInterpolator(new LinearInterpolator());
         ra.setDuration(5000);
         ra.setRepeatCount(-1);
-        bkelit.startAnimation(ra);
+        lpRecord.startAnimation(ra);
 
         RelativeLayout myLL = (RelativeLayout) findViewById(R.id.myLayout);
+
+
+        ImageButton lyricsButton = (ImageButton) findViewById(R.id.lyrics_button);
 
         if(sp.getBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false)){
 
@@ -79,7 +74,7 @@ public class PlayMusic extends AppCompatActivity {
 
         }
 
-        myLL.setOnClickListener(new View.OnClickListener() {
+        lyricsButton.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
 
@@ -157,7 +152,7 @@ public class PlayMusic extends AppCompatActivity {
 
         (findViewById(R.id.scroll_lyrics)).setAlpha(1);
         (findViewById(R.id.lyrics_textview)).setAlpha(1);
-        (findViewById(R.id.bakelit_textview)).setAlpha(0);
+        (findViewById(R.id.lp_record_textview)).setAlpha(0);
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, false);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false);
         editor.commit();
@@ -165,12 +160,11 @@ public class PlayMusic extends AppCompatActivity {
 
     }
 
-
     private void setBakelitForeground(){
 
         (findViewById(R.id.scroll_lyrics)).setAlpha(0);
         (findViewById(R.id.lyrics_textview)).setAlpha(0);
-        (findViewById(R.id.bakelit_textview)).setAlpha(1);
+        (findViewById(R.id.lp_record_textview)).setAlpha(1);
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
         editor.commit();
@@ -182,9 +176,10 @@ public class PlayMusic extends AppCompatActivity {
         if(sp.getBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true)) {
             MainActivity.getMusicAndLyrics();
             LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
-            ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
-            if (LYRICS != null)
+            if (LYRICS != null){
                 editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS,false);
+                ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
+            }
         }
         editor.commit();
     }

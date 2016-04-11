@@ -8,11 +8,16 @@ public class MusicFile {
     private String artist;
     private String title;
     private String path;
+    private String LYRICS;
 
-    public MusicFile(String artist, String title, String path) {
+    public MusicFile() {
+    }
+
+    public MusicFile(String artist, String title, String path, String LYRICS) {
         this.artist = artist;
         this.title = title;
         this.path = path;
+        this.LYRICS = LYRICS;
     }
 
     public String getArtist() {
@@ -37,5 +42,13 @@ public class MusicFile {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public String getLYRICS() {
+        return LYRICS;
+    }
+
+    public void setLYRICS(String LYRICS) {
+        this.LYRICS = LYRICS;
     }
 }

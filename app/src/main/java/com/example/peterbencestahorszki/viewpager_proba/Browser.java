@@ -30,7 +30,7 @@ public class Browser extends Fragment {
     private static ArrayList<String> musicTitles = new ArrayList<String>();
     private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
     private ContentResolver cR;
-    private MusicFile lastClicked = new MusicFile(null,null,null);
+    private MusicFile lastClicked = new MusicFile();
 
 
     public static Browser newInstance(){
@@ -67,15 +67,75 @@ public class Browser extends Fragment {
 
         list = (ListView) view.findViewById(R.id.list);
 
+        setList();
+
+        adapter = new ArrayAdapter<String>(this.getContext(), R.layout.rowlayout_musiclist, musicTitles);
+        list.setAdapter(adapter);
+
+        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                lastClicked = musicFilesOnStorage.get(position);
+
+                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS,
+                        Context.MODE_APPEND);
+                SharedPreferences.Editor editor = sp.edit();
+
+                String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
+
+                System.out.println("Current sharedpref music path: " + sharedPrefPath);
+
+                Intent intent = new Intent(getActivity(), PlayMusic.class);
+
+
+                System.out.println("LAST CLICKED PATH: \n" +
+                        lastClicked.getPath());
+                editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
+
+                if (lastClicked.getPath() == sharedPrefPath) {
+
+                    intent.putExtra("SHOULD_I_START", false);
+
+
+                } else {
+
+                    editor.putString(Constants.PLAYING_SONG_ARTIST, lastClicked.getArtist());
+                    editor.putString(Constants.PLAYING_SONG_TITLE, lastClicked.getTitle());
+                    editor.putString(Constants.PLAYING_SONG_LYRICS, null);
+
+                    MainActivity.setMusicParameters();
+
+                    if (sharedPrefPath != null) MainActivity.stopMusic();
+                    MainActivity.getMusicAndLyrics();
+                    intent.putExtra("SHOULD_I_START", true);
+                    editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
+                    editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
+
+                }
+
+
+                editor.commit();
+
+                startActivity(intent);
+
+            }
+        });
+
+        return view;
+    }
+
+    private void setList(){
+
         cR  = getActivity().getContentResolver();
         Uri uri = MediaStore.Audio.Media.EXTERNAL_CONTENT_URI;
         String selection = MediaStore.Audio.Media.IS_MUSIC + "!= 0";
         String order = MediaStore.Audio.Media.ALBUM + " ASC";
         Cursor cursor = cR.query(uri,
-                                 null,
-                                 selection,
-                                 null,
-                                 order);
+                null,
+                selection,
+                null,
+                order);
         int count = 0;
 
         if(cursor != null){
@@ -96,7 +156,8 @@ public class Browser extends Fragment {
                     MusicFile dummy = new MusicFile(
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.ARTIST)),
                             cursor.getString(cursor.getColumnIndex(MediaStore.Audio.Media.TITLE)),
-                            cursor.getString(i));
+                            cursor.getString(i),
+                            null);
 
                     musicFilesOnStorage.add(dummy);
                     musicTitles.add(temp);
@@ -106,60 +167,6 @@ public class Browser extends Fragment {
 
         }
 
-        adapter = new ArrayAdapter<String>(this.getContext(), R.layout.rowlayout_musiclist, musicTitles);
-        list.setAdapter(adapter);
-
-        list.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-            @Override
-            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-
-                lastClicked = musicFilesOnStorage.get(position);
-
-                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
-                SharedPreferences.Editor editor = sp.edit();
-
-                String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
-
-                System.out.println("Current sharedpref music path: " + sharedPrefPath);
-
-                Intent intent = new Intent(getActivity(), PlayMusic.class);
-
-
-                System.out.println("LAST CLICKED PATH: \n" +
-                    lastClicked.getPath());
-                editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
-
-                if (lastClicked.getPath() == sharedPrefPath) {
-
-                    intent.putExtra("SHOULD_I_START", false);
-
-
-                } else {
-
-                    editor.putString(Constants.PLAYING_SONG_ARTIST, lastClicked.getArtist());
-                    editor.putString(Constants.PLAYING_SONG_TITLE, lastClicked.getTitle());
-                    editor.putString(Constants.PLAYING_SONG_LYRICS, null);
-
-                    MainActivity.setMusicParameters();
-
-                    if(sharedPrefPath != null) MainActivity.stopMusic();
-                    MainActivity.getMusicAndLyrics();
-//                    System.out.println("setOnItemClick: " + sp.getString(Constants.PLAYING_SONG_LYRICS, null));
-                    intent.putExtra("SHOULD_I_START", true);
-                    editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
-                    editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
-
-                }
-
-
-                editor.commit();
-
-                startActivity(intent);
-
-            }
-        });
-
-        return view;
     }
 
 }
