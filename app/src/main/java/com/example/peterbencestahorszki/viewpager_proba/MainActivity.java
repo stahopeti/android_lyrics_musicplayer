@@ -23,8 +23,15 @@ import org.jsoup.nodes.Element;
 import org.jsoup.nodes.Node;
 import org.jsoup.nodes.TextNode;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.io.StreamCorruptedException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -71,13 +78,13 @@ public class MainActivity extends AppCompatActivity {
 
         setContentView(R.layout.activity_main);
 
-        if(savedInstanceState == null){
+        if (savedInstanceState == null) {
 
             System.out.println("SAVED INSTANCE STATE IS NULL");
 
         }
 
-        if(savedInstanceState!=null){
+        if (savedInstanceState != null) {
 
             editor.putBoolean(Constants.IS_MUSIC_PLAYING,
                     savedInstanceState.getBoolean(Constants.WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON));
@@ -125,9 +132,9 @@ public class MainActivity extends AppCompatActivity {
                 Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
                 Boolean hasPlayActivityStarted = sp.getBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, false);
 
-                if (!isMusicPlaying){
+                if (!isMusicPlaying) {
 
-                    if(hasPlayActivityStarted){
+                    if (hasPlayActivityStarted) {
 
                         docked_button.setBackgroundResource(R.drawable.pausebutton);
                         playMusic();
@@ -192,8 +199,8 @@ public class MainActivity extends AppCompatActivity {
                         while(LYRICS==null){
                             System.out.println("VAN INTERNET");
                             LYRICS = getSongLyrics(
-                                    sp.getString(Constants.PLAYING_SONG_ARTIST, null),//((TextView) findViewById(R.id.artist)).getText().toString(),
-                                    sp.getString(Constants.PLAYING_SONG_TITLE, null)//((TextView) findViewById(R.id.title)).getText().toString()
+                                    sp.getString(Constants.PLAYING_SONG_ARTIST, null),
+                                    sp.getString(Constants.PLAYING_SONG_TITLE, null)
 
                             );
                         }
@@ -212,9 +219,7 @@ public class MainActivity extends AppCompatActivity {
 
         } else {
 
-
         }
-
 
     }
 
@@ -309,17 +314,6 @@ public class MainActivity extends AppCompatActivity {
             return "default";
         }
 
-    }
-
-    private void putLyricsInFile() throws IOException {
-
-        String file = sp.getString(Constants.PLAYING_SONG_TITLE, null) + ".txt";
-        FileOutputStream out = openFileOutput(file,
-                Context.MODE_PRIVATE
-        );
-
-        out.write(sp.getString(Constants.PLAYING_SONG_LYRICS, null).getBytes());
-        out.close();
     }
 
     @Override

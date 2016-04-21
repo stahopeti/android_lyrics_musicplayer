@@ -5,6 +5,17 @@ package com.example.peterbencestahorszki.viewpager_proba;
  */
 public class Constants {
 
+    public static final String XLYRCS_SHARED_PREFS = "XLYRICS_SHARED_PREFS";
+
+    /*
+    Intent Constants
+    */
+
+    public static final String INTENT_ARTIST = "INTENT_ARTIST";
+    public static final String INTENT_TITLE = "INTENT_TITLE";
+    public static final String INTENT_PATH = "INTENT_PATH";
+    public static final String INTENT_LYRICS = "INTENT_LYRICS";
+
     /*
     SavedInstance
     */
@@ -13,12 +24,9 @@ public class Constants {
     public static final String ARTIST_BEFORE_BACK_BUTTON = "ARTIST_BEFORE_BACK_BUTTON";
     public static final String LYRICS_BEFORE_BACK_BUTTON = "LYRICS_BEFORE_BACK_BUTTON";
 
-
     /*
     SharedPreferences
     */
-
-    public static final String XLYRCS_SHARED_PREFS = "XLYRICS_SHARED_PREFS";
 
     public static final String PLAYING_SONG_ARTIST = "PLAYING_SONG_ARTIST";
     public static final String PLAYING_SONG_TITLE = "PLAYING_SONG_TITLE";
@@ -34,12 +42,6 @@ public class Constants {
     public static final String IS_BAKELIT_FOREGROUND = "IS_BAKELIT_FOREGROUND";
 
 
-    /*
 
-    public static MediaPlayer music;
-    public static String tabBrowser;
-    public static String tabDownloaded;
-
-    */
 
 }

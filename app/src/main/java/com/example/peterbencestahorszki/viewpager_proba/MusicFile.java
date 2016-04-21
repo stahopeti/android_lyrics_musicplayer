@@ -1,12 +1,25 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
+import java.io.Serializable;
+
 /**
  * Created by peterbencestahorszki on 2016. 03. 14..
  */
-public class MusicFile {
+public class MusicFile implements Serializable{
 
     private String artist;
     private String title;
+
+    @Override
+    public String toString() {
+        return "MusicFile{" +
+                "artist='" + artist + '\'' +
+                ", title='" + title + '\'' +
+                ", path='" + path + '\'' +
+                ", LYRICS='" + LYRICS + '\'' +
+                '}';
+    }
+
     private String path;
     private String LYRICS;
 

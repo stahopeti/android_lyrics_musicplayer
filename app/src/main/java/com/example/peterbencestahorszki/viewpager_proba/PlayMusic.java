@@ -11,6 +11,16 @@ import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.util.ArrayList;
+
 public class PlayMusic extends AppCompatActivity {
 
     private String LYRICS = null;
@@ -38,6 +48,12 @@ public class PlayMusic extends AppCompatActivity {
                 sp.getString(Constants.PLAYING_SONG_ARTIST, null) +
                 "\n" +
                 sp.getString(Constants.PLAYING_SONG_TITLE, null));
+
+        if(LYRICS != null){
+
+            ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
+
+        }
 
         (findViewById(R.id.artist_and_title)).invalidate();
 
@@ -179,9 +195,91 @@ public class PlayMusic extends AppCompatActivity {
             if (LYRICS != null){
                 editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS,false);
                 ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
+
+                MusicFile asd = new MusicFile(
+                        sp.getString(Constants.PLAYING_SONG_ARTIST, null),
+                        sp.getString(Constants.PLAYING_SONG_TITLE, null),
+                        sp.getString(Constants.PLAYING_SONG_PATH, null),
+                        sp.getString(Constants.PLAYING_SONG_LYRICS, null));
+
+                System.out.println("EZEKET KELLENE SERIALIZALNI: " +
+                        sp.getString(Constants.PLAYING_SONG_PATH, null));
+
+                serialize(
+                        sp.getString(Constants.PLAYING_SONG_ARTIST, null),
+                        sp.getString(Constants.PLAYING_SONG_TITLE, null),
+                        sp.getString(Constants.PLAYING_SONG_PATH, null),
+                        sp.getString(Constants.PLAYING_SONG_LYRICS, null)
+                );
             }
         }
+
+
         editor.commit();
+    }
+
+    public void serialize(String artist, String title, String path, String LYRICS){
+
+        MusicFile dummy = new MusicFile(artist,title,path,LYRICS);
+
+        System.out.println("Serializalando: " + dummy.toString());
+
+        String fileName = getApplicationContext().getFilesDir().getPath().toString() + "serialized.dat";
+
+        File serializedFile = new File(fileName);
+
+        ArrayList<MusicFile> readFromSerialized = new ArrayList<>();
+        boolean foundSame = false;
+
+        if (serializedFile.exists()){
+
+            try {
+                InputStream in = new FileInputStream(serializedFile);
+                ObjectInputStream objectInputStream = new ObjectInputStream(in);
+                readFromSerialized = (ArrayList) objectInputStream.readObject();
+
+
+                for(MusicFile mF : readFromSerialized){
+
+                    if(mF.getPath().equals(dummy.getPath())) foundSame = true;
+
+                }
+
+
+                objectInputStream.close();
+                in.close();
+
+            } catch (IOException | ClassNotFoundException e) {
+                e.printStackTrace();
+            }
+
+        }
+        if (!serializedFile.exists() || !foundSame){
+
+            System.out.println("FÁJL NEM LÉTEZIK");
+
+            try {
+                FileOutputStream out = new FileOutputStream(serializedFile);
+
+                readFromSerialized.add(dummy);
+                System.out.println("SERIALIZALT FAJLOK SZAMA: " + readFromSerialized.size());
+
+                ObjectOutputStream objectOut = new ObjectOutputStream(out);
+                objectOut.writeObject(readFromSerialized);
+
+                objectOut.close();
+                out.close();
+
+                System.out.println("!! SERIALIZALAS KESZ !!");
+
+            } catch (FileNotFoundException e) {
+                e.printStackTrace();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+        }
+
     }
 
     private void playMusic(){

@@ -31,7 +31,8 @@ public class Browser extends Fragment {
     private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
     private ContentResolver cR;
     private MusicFile lastClicked = new MusicFile();
-
+    private static SharedPreferences sp;
+    private static SharedPreferences.Editor editor;
 
     public static Browser newInstance(){
 
@@ -78,9 +79,8 @@ public class Browser extends Fragment {
 
                 lastClicked = musicFilesOnStorage.get(position);
 
-                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS,
-                        Context.MODE_APPEND);
-                SharedPreferences.Editor editor = sp.edit();
+                sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_APPEND);
+                editor = sp.edit();
 
                 String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
 
