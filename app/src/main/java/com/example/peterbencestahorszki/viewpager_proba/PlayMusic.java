@@ -26,10 +26,13 @@ public class PlayMusic extends AppCompatActivity {
     private String LYRICS = null;
     private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_APPEND);
     private SharedPreferences.Editor editor;
+    MusicPlaybackService playbackService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
+
 
         editor = sp.edit();
         editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);

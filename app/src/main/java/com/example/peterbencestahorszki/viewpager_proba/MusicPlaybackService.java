@@ -18,11 +18,17 @@ import java.util.ArrayList;
  */
 public class MusicPlaybackService extends Service{
 
+    private final IBinder binder;
+
     private MediaPlayer music;
     private ArrayList<MusicFile> songs;
     private int position;
     private static SharedPreferences sp;
     private static SharedPreferences.Editor editor;
+
+    public MusicPlaybackService(IBinder binder) {
+        this.binder = binder;
+    }
 
     @Nullable
     @Override
@@ -47,8 +53,6 @@ public class MusicPlaybackService extends Service{
 
         return null;
     }
-
-
 
     public void playMusic(){
 
