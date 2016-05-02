@@ -10,6 +10,7 @@ import android.os.Binder;
 import android.os.IBinder;
 import android.os.PowerManager;
 import android.support.annotation.Nullable;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -18,71 +19,102 @@ import java.util.ArrayList;
  */
 public class MusicPlaybackService extends Service{
 
-    private final IBinder binder;
+    private final IBinder binder = new LocalBinder();
+    boolean isMusicPlaying = false;
+
+    String TAG = "MusicPlayback";
 
     private MediaPlayer music;
+    private MusicFile currentlyPlaying = null;
     private ArrayList<MusicFile> songs;
     private int position;
     private static SharedPreferences sp;
     private static SharedPreferences.Editor editor;
 
-    public MusicPlaybackService(IBinder binder) {
-        this.binder = binder;
-    }
-
     @Nullable
     @Override
     public IBinder onBind(Intent intent) {
 
-        //if intent wants another music
-        if(!intent.getStringExtra(Constants.INTENT_PATH).equals(sp.getString(Constants.PLAYING_SONG_PATH,null))){
+        Log.i(TAG, "service onBind");
+        sp = getApplicationContext().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
+        return binder;
 
-            Uri musicUri = Uri.parse(intent.getStringExtra(Constants.INTENT_PATH));
+    }
 
-            music = MediaPlayer.create(getApplicationContext(), musicUri);
+    public void setNewMusic(){
 
-            music.seekTo(position);
+        Log.i(TAG, "service setNewMusic: " + sp.getString(Constants.PLAYING_SONG_TITLE, null));
+
+        currentlyPlaying = new MusicFile(
+                sp.getString(Constants.PLAYING_SONG_ARTIST, null),
+                sp.getString(Constants.PLAYING_SONG_TITLE, null),
+                sp.getString(Constants.PLAYING_SONG_PATH, null),
+                sp.getString(Constants.PLAYING_SONG_LYRICS, null)
+        );
+
+        Uri musicUri = Uri.parse(currentlyPlaying.getPath());
+
+        music = MediaPlayer.create(getApplicationContext(), musicUri);
+
+        music.seekTo(0);
+
+    }
+
+    public void playPauseMusic(){
+
+        Log.i(TAG, "service playPause");
+
+        if(currentlyPlaying == null){
+
+            setNewMusic();
             music.start();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
 
         } else {
 
+            if(!currentlyPlaying.getPath().equals(sp.getString(Constants.PLAYING_SONG_PATH, null))){
 
+                setNewMusic();
+                music.start();
 
-        }
+            } else {
 
-        return null;
-    }
+                if(isMusicPlaying){
 
-    public void playMusic(){
+                    position = music.getCurrentPosition();
+                    music.pause();
+                    isMusicPlaying = false;
 
-        String path = sp.getString(Constants.PLAYING_SONG_PATH, null);
-        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
-        int musicPosition = sp.getInt(Constants.PLAYING_MUSIC_POSITION, 0);
+                } else {
 
-        if(!isMusicPlaying) {
+                    music.seekTo(position);
+                    music.start();
+                    isMusicPlaying = true;
 
-            Uri musicUri = Uri.parse(path);
+                }
 
-            music = MediaPlayer.create(getApplicationContext(), musicUri);
-
-            music.seekTo(musicPosition);
-            music.start();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
-
-        } else {
-
-            editor.putInt(Constants.PLAYING_MUSIC_POSITION, music.getCurrentPosition());
-            music.stop();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
+            }
 
         }
 
-        editor.commit();
     }
 
-    @Override
-    public void onDestroy(){
+    public boolean isMusicPlaying(){
+
+        Log.i(TAG, "service isMusicPlaying");
+
+        return isMusicPlaying;
 
     }
+
+    /**
+     * Class used for the client Binder.  Because we know this service always
+     * runs in the same process as its clients, we don't need to deal with IPC.
+     */
+    public class LocalBinder extends Binder {
+        public MusicPlaybackService getService() {
+            // Return this instance of LocalService so clients can call public methods
+            return MusicPlaybackService.this;
+        }
+    }
+
 }

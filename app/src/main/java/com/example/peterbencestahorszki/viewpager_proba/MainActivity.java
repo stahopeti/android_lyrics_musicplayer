@@ -1,13 +1,16 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
+import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.media.MediaPlayer;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.Uri;
 import android.os.Bundle;
+import android.os.IBinder;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -39,6 +42,8 @@ import java.util.List;
 public class MainActivity extends AppCompatActivity {
 
     public static Context context;
+    public MusicPlaybackService myService;
+    boolean isBound;
 
     FragmentPagerAdapter adapterViewPager;
     ViewPager vpPager = null;
@@ -74,15 +79,11 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState){
 
         super.onCreate(savedInstanceState);
-        System.out.println("MainActivity ONCREATE");
-
+/*
+        Intent intent = new Intent(getApplicationContext(), MusicPlaybackService.class);
+        bindService(intent,mConnect,Context.BIND_AUTO_CREATE);
+*/
         setContentView(R.layout.activity_main);
-
-        if (savedInstanceState == null) {
-
-            System.out.println("SAVED INSTANCE STATE IS NULL");
-
-        }
 
         if (savedInstanceState != null) {
 
@@ -93,20 +94,13 @@ public class MainActivity extends AppCompatActivity {
 
             editor.commit();
 
-            System.out.println("IS MUSIC PLAYING: " + savedInstanceState.getBoolean(Constants.WAS_MUSIC_PLAYING_BEFORE_BACK_BUTTON));
-            System.out.println("PLAYING SONG TITLE: " + savedInstanceState.getString(Constants.TITLE_BEFORE_BACK_BUTTON));
-
-        }
+      }
 
         vpPager = (ViewPager) findViewById(R.id.vpPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), vpPager);
         vpPager.setAdapter(adapterViewPager);
         context = getApplicationContext();
         final ImageButton docked_button = (ImageButton) findViewById(R.id.docked_playButton);
-
-
-        setTabName(getString(R.string.tab_name_browser), getString(R.string.tab_name_downloaded));
-
 
         TextView playing = (TextView) findViewById(R.id.docked_textview);
 
@@ -137,14 +131,12 @@ public class MainActivity extends AppCompatActivity {
                     if (hasPlayActivityStarted) {
 
                         docked_button.setBackgroundResource(R.drawable.pausebutton);
-                        playMusic();
 
                     }
 
                 } else {
 
                     docked_button.setBackgroundResource(R.drawable.playbutton);
-                    playMusic();
 
                 }
             }
@@ -221,33 +213,6 @@ public class MainActivity extends AppCompatActivity {
 
         }
 
-    }
-
-    public static void playMusic(){
-
-        String path = sp.getString(Constants.PLAYING_SONG_PATH, null);
-        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
-        int musicPosition = sp.getInt(Constants.PLAYING_MUSIC_POSITION, 0);
-
-        if(!isMusicPlaying) {
-
-            Uri musicUri = Uri.parse(path);
-
-            music = MediaPlayer.create(context, musicUri);
-
-            music.seekTo(musicPosition);
-            music.start();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
-
-        } else {
-
-            editor.putInt(Constants.PLAYING_MUSIC_POSITION, music.getCurrentPosition());
-            music.stop();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
-
-        }
-
-        editor.commit();
     }
 
     //Inserted code, from api README
@@ -394,4 +359,46 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private ServiceConnection mConnect = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlaybackService.LocalBinder binder = (MusicPlaybackService.LocalBinder) service;
+            myService = binder.getService();
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
+
+/*
+    public static void playMusic(){
+
+        String path = sp.getString(Constants.PLAYING_SONG_PATH, null);
+        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
+        int musicPosition = sp.getInt(Constants.PLAYING_MUSIC_POSITION, 0);
+
+        if(!isMusicPlaying) {
+
+            Uri musicUri = Uri.parse(path);
+
+            music = MediaPlayer.create(context, musicUri);
+
+            music.seekTo(musicPosition);
+            music.start();
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
+
+        } else {
+
+            editor.putInt(Constants.PLAYING_MUSIC_POSITION, music.getCurrentPosition());
+            music.stop();
+            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
+
+        }
+
+        editor.commit();
+    }
+*/
 }

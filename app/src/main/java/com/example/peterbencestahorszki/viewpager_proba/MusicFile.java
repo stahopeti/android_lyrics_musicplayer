@@ -9,6 +9,8 @@ public class MusicFile implements Serializable{
 
     private String artist;
     private String title;
+    private String path;
+    private String LYRICS;
 
     @Override
     public String toString() {
@@ -20,8 +22,6 @@ public class MusicFile implements Serializable{
                 '}';
     }
 
-    private String path;
-    private String LYRICS;
 
     public MusicFile() {
     }

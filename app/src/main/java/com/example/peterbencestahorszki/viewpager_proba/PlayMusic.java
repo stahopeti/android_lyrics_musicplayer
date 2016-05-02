@@ -1,6 +1,11 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.IBinder;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
@@ -23,16 +28,20 @@ import java.util.ArrayList;
 
 public class PlayMusic extends AppCompatActivity {
 
+
+    public MusicPlaybackService myService;
+    boolean isBound;
+
     private String LYRICS = null;
     private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_APPEND);
     private SharedPreferences.Editor editor;
-    MusicPlaybackService playbackService;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-
+        Intent intent = new Intent(getApplicationContext(), MusicPlaybackService.class);
+        bindService(intent,mConnect,Context.BIND_AUTO_CREATE);
 
         editor = sp.edit();
         editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);
@@ -60,7 +69,6 @@ public class PlayMusic extends AppCompatActivity {
 
         (findViewById(R.id.artist_and_title)).invalidate();
 
-        if(bundle.getBoolean("SHOULD_I_START")) playMusic();
 
         Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
 
@@ -80,7 +88,6 @@ public class PlayMusic extends AppCompatActivity {
 
         RelativeLayout myLL = (RelativeLayout) findViewById(R.id.myLayout);
 
-
         ImageButton lyricsButton = (ImageButton) findViewById(R.id.lyrics_button);
 
         if(sp.getBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false)){
@@ -97,8 +104,6 @@ public class PlayMusic extends AppCompatActivity {
             @Override
             public void onClick(View v) {
 
-                System.out.println("BAKELIT VIEW PRESSED");
-
                 if (sp.getBoolean(Constants.IS_BAKELIT_FOREGROUND, false)) {
 
                     setBakelitBackground();
@@ -113,6 +118,8 @@ public class PlayMusic extends AppCompatActivity {
         });
 
         editor.commit();
+
+//        if(bundle.getBoolean("SHOULD_I_START")) playMusic();
         refreshLyrics();
 
     }
@@ -131,10 +138,6 @@ public class PlayMusic extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            int musicPosition;
-
-            musicPosition = MainActivity.music.getCurrentPosition();
-            MainActivity.music.seekTo(musicPosition + 500);
 
         }
 
@@ -145,11 +148,6 @@ public class PlayMusic extends AppCompatActivity {
     View.OnClickListener seekBackwards = new View.OnClickListener() {
         @Override
         public void onClick(View v) {
-
-            int musicPosition;
-
-            musicPosition = MainActivity.music.getCurrentPosition();
-            MainActivity.music.seekTo(musicPosition - 500);
 
         }
 
@@ -287,22 +285,17 @@ public class PlayMusic extends AppCompatActivity {
 
     private void playMusic(){
 
-        Boolean isMusicPlaying
-                = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
-
-
-
-        if(isMusicPlaying){
+        if(myService.isMusicPlaying()){
 
             (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.playbutton);
 
         }
-        if(!isMusicPlaying){
+        if(!myService.isMusicPlaying()){
 
             (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.pausebutton);
 
         }
-        MainActivity.playMusic();
+        myService.playPauseMusic();
     }
 
     @Override
@@ -313,5 +306,19 @@ public class PlayMusic extends AppCompatActivity {
         editor.commit();
 
     }
+
+    private ServiceConnection mConnect = new ServiceConnection() {
+        @Override
+        public void onServiceConnected(ComponentName name, IBinder service) {
+            MusicPlaybackService.LocalBinder binder = (MusicPlaybackService.LocalBinder) service;
+            myService = binder.getService();
+            isBound = true;
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            isBound = false;
+        }
+    };
 
 }
