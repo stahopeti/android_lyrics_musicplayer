@@ -1,20 +1,27 @@
 package com.example.peterbencestahorszki.viewpager_proba;
 
+import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.content.ServiceConnection;
 import android.content.SharedPreferences;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.view.View;
+import android.view.animation.AccelerateInterpolator;
 import android.view.animation.Animation;
+import android.view.animation.DecelerateInterpolator;
 import android.view.animation.LinearInterpolator;
 import android.view.animation.RotateAnimation;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -31,22 +38,28 @@ public class PlayMusic extends AppCompatActivity {
 
     public MusicPlaybackService myService;
     boolean isBound;
+    private BroadcastReceiver broadcastReceiver = null;
+
+    boolean shouldIStart;
 
     private String LYRICS = null;
-    private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_APPEND);
+    private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
     private SharedPreferences.Editor editor;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
-        Intent intent = new Intent(getApplicationContext(), MusicPlaybackService.class);
-        bindService(intent,mConnect,Context.BIND_AUTO_CREATE);
+
+        //en sajat register függvenyem
+        registerReciever();
 
         editor = sp.edit();
         editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
         Bundle bundle = getIntent().getExtras();
+
+        shouldIStart = bundle.getBoolean("SHOULD_I_START");
 
         LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
 
@@ -69,22 +82,6 @@ public class PlayMusic extends AppCompatActivity {
 
         (findViewById(R.id.artist_and_title)).invalidate();
 
-
-        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
-
-        if(!isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
-        if(isMusicPlaying) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
-
-        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
-
-        RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
-                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
-                0.5f);
-
-        ra.setInterpolator(new LinearInterpolator());
-        ra.setDuration(5000);
-        ra.setRepeatCount(-1);
-        lpRecord.startAnimation(ra);
 
         RelativeLayout myLL = (RelativeLayout) findViewById(R.id.myLayout);
 
@@ -119,11 +116,99 @@ public class PlayMusic extends AppCompatActivity {
 
         editor.commit();
 
-//        if(bundle.getBoolean("SHOULD_I_START")) playMusic();
+
         refreshLyrics();
 
     }
 
+    private void windUpAnimation(){
+
+
+        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
+
+        RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+                0.5f);
+
+
+        ra.setInterpolator(new AccelerateInterpolator(1));
+        ra.setDuration(7000);
+        lpRecord.startAnimation(ra);
+
+        ra.setAnimationListener(new Animation.AnimationListener() {
+            @Override
+            public void onAnimationStart(Animation animation) {
+
+            }
+
+            @Override
+            public void onAnimationEnd(Animation animation) {
+                rotateAnimation();
+            }
+
+            @Override
+            public void onAnimationRepeat(Animation animation) {
+
+            }
+        });
+
+    }
+
+    private void windDownAnimation(){
+
+        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
+
+        RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+                0.5f);
+
+
+        ra.setInterpolator(new DecelerateInterpolator(1));
+        ra.setDuration(7000);
+        lpRecord.startAnimation(ra);
+
+    }
+
+    private void rotateAnimation(){
+
+        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
+
+        RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
+                Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
+                0.5f);
+
+        ra.setInterpolator(new LinearInterpolator());
+        ra.setDuration(4500);
+        ra.setRepeatCount(-1);
+        lpRecord.startAnimation(ra);
+
+    }
+
+    private void registerReciever(){
+
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Constants.MUSIC_STOPPED);
+        filter.addAction(Constants.START_LP);
+
+        broadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+
+                if(intent.getAction().equals(Constants.MUSIC_STOPPED)) {
+
+                    (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.playbutton);
+                    windDownAnimation();
+                }
+                if(intent.getAction().equals(Constants.START_LP)) {
+
+                    windUpAnimation();
+
+                }
+
+            }
+        };
+        getApplicationContext().registerReceiver(broadcastReceiver,filter);
+    }
 
     View.OnClickListener refreshButtonListener = new View.OnClickListener(){
         @Override
@@ -138,6 +223,7 @@ public class PlayMusic extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
+            myService.seekForward();
 
         }
 
@@ -149,6 +235,8 @@ public class PlayMusic extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
+            myService.seekBackward();
+
         }
 
 
@@ -159,7 +247,11 @@ public class PlayMusic extends AppCompatActivity {
         @Override
         public void onClick(View v) {
 
-            playMusic();
+            try {
+                playMusic();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 
         }
 
@@ -283,7 +375,7 @@ public class PlayMusic extends AppCompatActivity {
 
     }
 
-    private void playMusic(){
+    private void playMusic() throws IOException {
 
         if(myService.isMusicPlaying()){
 
@@ -296,6 +388,16 @@ public class PlayMusic extends AppCompatActivity {
 
         }
         myService.playPauseMusic();
+    }
+
+    @Override
+    public void onResume(){
+
+        super.onResume();
+
+        Intent intent = new Intent(getApplicationContext(), MusicPlaybackService.class);
+        bindService(intent,mConnect,Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
@@ -313,6 +415,20 @@ public class PlayMusic extends AppCompatActivity {
             MusicPlaybackService.LocalBinder binder = (MusicPlaybackService.LocalBinder) service;
             myService = binder.getService();
             isBound = true;
+
+            //animation function
+            if(myService.isMusicPlaying() || myService.isMusicPaused()) rotateAnimation();
+
+            try {
+                if(shouldIStart) playMusic();
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+
+            if(!myService.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
+            if(myService.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
+
+
         }
 
         @Override

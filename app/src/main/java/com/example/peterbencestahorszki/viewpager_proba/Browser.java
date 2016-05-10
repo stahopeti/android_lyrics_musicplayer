@@ -30,7 +30,7 @@ public class Browser extends Fragment {
     private static ArrayList<String> musicTitles = new ArrayList<String>();
     private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
     private ContentResolver cR;
-    private MusicFile lastClicked = new MusicFile();
+    private MusicFile lastClicked = null;
     private static SharedPreferences sp;
     private static SharedPreferences.Editor editor;
 
@@ -79,7 +79,7 @@ public class Browser extends Fragment {
 
                 lastClicked = musicFilesOnStorage.get(position);
 
-                sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_APPEND);
+                sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
                 editor = sp.edit();
 
                 String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
@@ -93,7 +93,9 @@ public class Browser extends Fragment {
                         lastClicked.getPath());
                 editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
 
-                if (lastClicked.getPath() == sharedPrefPath) {
+                String asd = lastClicked.getPath();
+
+                if (lastClicked.getPath().equals(sharedPrefPath)) {
 
                     intent.putExtra("SHOULD_I_START", false);
 
@@ -104,9 +106,6 @@ public class Browser extends Fragment {
                     editor.putString(Constants.PLAYING_SONG_TITLE, lastClicked.getTitle());
                     editor.putString(Constants.PLAYING_SONG_LYRICS, null);
 
-                    MainActivity.setMusicParameters();
-
-                    if (sharedPrefPath != null) MainActivity.stopMusic();
                     MainActivity.getMusicAndLyrics();
                     intent.putExtra("SHOULD_I_START", true);
                     editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
@@ -166,6 +165,15 @@ public class Browser extends Fragment {
             }
 
         }
+
+    }
+
+    @Override
+    public void onPause(){
+
+        super.onPause();
+
+        if(lastClicked!=null) editor.putString(Constants.LAST_CLICKED_PATH, lastClicked.getPath());
 
     }
 

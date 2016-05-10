@@ -33,7 +33,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="56dp"
                 android:layout_weight="0.84"
-                android:text="ÉPPEN JÁTSZIK"
+                android:text="@string/docked_nothing_playing"
                 android:gravity="center" />
 
             <ImageButton

@@ -55,7 +55,7 @@ public class Downloaded extends Fragment {
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
-        sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_APPEND);
+        sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
         System.out.println("DOWNLOADED ONCREATEVIEW");
         View view = inflater.inflate(R.layout.browsedownloaded_fragment, container, false);
         list = (ListView) view.findViewById(R.id.downloaded_list);
@@ -110,9 +110,7 @@ public class Downloaded extends Fragment {
                     editor.putString(Constants.PLAYING_SONG_TITLE, lastClicked.getTitle());
                     editor.putString(Constants.PLAYING_SONG_LYRICS, lastClicked.getLYRICS());
 
-                    MainActivity.setMusicParameters();
 
-                    if (sharedPrefPath != null) MainActivity.stopMusic();
                     MainActivity.getMusicAndLyrics();
                     intent.putExtra("SHOULD_I_START", true);
                     editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, false);
