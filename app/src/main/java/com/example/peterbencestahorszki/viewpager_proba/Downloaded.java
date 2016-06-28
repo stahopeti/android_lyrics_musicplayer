@@ -11,7 +11,6 @@ import android.view.ViewGroup;
 import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
-import android.widget.TextView;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -32,8 +31,6 @@ public class Downloaded extends Fragment {
     private ArrayList<String> stringsForListing;
     private ArrayAdapter<String> adapter;
     private MusicFile lastClicked = new MusicFile();
-    private static SharedPreferences sp;
-    private static SharedPreferences.Editor editor;
 
     public static Downloaded newInstance(){
 
@@ -53,10 +50,8 @@ public class Downloaded extends Fragment {
 
     // Inflate the view for the fragment based on layout XML
     @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
-        System.out.println("DOWNLOADED ONCREATEVIEW");
+    public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
+
         View view = inflater.inflate(R.layout.browsedownloaded_fragment, container, false);
         list = (ListView) view.findViewById(R.id.downloaded_list);
 
@@ -65,12 +60,7 @@ public class Downloaded extends Fragment {
 
         if(deserialize() && (theseHaveLyrics != null)){
 
-            System.out.println("SIKERÜLT DESERIALIZALNI");
-
-
         } else {
-
-            System.out.println("NEM SIKERÜLT");
 
         }
 
@@ -84,22 +74,17 @@ public class Downloaded extends Fragment {
 
                 lastClicked = theseHaveLyrics.get(position);
 
-                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS,
-                        Context.MODE_APPEND);
+                SharedPreferences sp = getActivity().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, Context.MODE_PRIVATE);
                 SharedPreferences.Editor editor = sp.edit();
 
                 String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
 
-                System.out.println("Current sharedpref music path: " + sharedPrefPath);
 
                 Intent intent = new Intent(getActivity(), PlayMusic.class);
 
-
-                System.out.println("LAST CLICKED PATH: \n" +
-                        lastClicked.getPath());
                 editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
 
-                if (lastClicked.getPath() == sharedPrefPath) {
+                if (lastClicked.getPath().equals(sharedPrefPath)) {
 
                     intent.putExtra("SHOULD_I_START", false);
 
@@ -117,7 +102,6 @@ public class Downloaded extends Fragment {
                     editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false);
 
                 }
-
 
                 editor.commit();
 
@@ -147,8 +131,6 @@ public class Downloaded extends Fragment {
 
                 objectInputStream.close();
                 in.close();
-
-                System.out.println("THESE HAVE LYRICS size: " + theseHaveLyrics.size());
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -192,7 +174,6 @@ public class Downloaded extends Fragment {
         super.onResume();
         deserialize();
         setList();
-        System.out.println("DOWNLOADED ONRESUME");
 
     }
 
@@ -200,8 +181,6 @@ public class Downloaded extends Fragment {
     public void onPause(){
 
         super.onPause();
-
-        System.out.println("DOWNLOADED ONPAUSE");
 
     }
 

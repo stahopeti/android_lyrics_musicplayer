@@ -26,11 +26,14 @@ import java.util.ArrayList;
 public class Browser extends Fragment {
 
     private ListView list;
+
     private ArrayAdapter<String> adapter;
     private static ArrayList<String> musicTitles = new ArrayList<String>();
     private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
+
     private ContentResolver cR;
     private MusicFile lastClicked = null;
+
     private static SharedPreferences sp;
     private static SharedPreferences.Editor editor;
 
@@ -49,7 +52,6 @@ public class Browser extends Fragment {
     public void onCreate(Bundle savedInstance){
 
         super.onCreate(savedInstance);
-        System.out.println("BROWSER ONCREATE");
         musicTitles.clear();
         for (int i = 0; i<getArguments().getStringArrayList("someList").size(); i++) {
 
@@ -84,14 +86,7 @@ public class Browser extends Fragment {
 
                 String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
 
-                System.out.println("Current sharedpref music path: " + sharedPrefPath);
-
                 Intent intent = new Intent(getActivity(), PlayMusic.class);
-
-
-                System.out.println("LAST CLICKED PATH: \n" +
-                        lastClicked.getPath());
-                editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
 
                 String asd = lastClicked.getPath();
 
