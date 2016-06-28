@@ -38,6 +38,7 @@ public class Constants {
 
     public static final String LAST_CLICKED_PATH = "LAST_CLICKED_PATH";
 
+    public static final String FIRST_RUN = "FIRST_RUN";
 
     public static final String PLAYING_SONG_ARTIST = "PLAYING_SONG_ARTIST";
     public static final String PLAYING_SONG_TITLE = "PLAYING_SONG_TITLE";

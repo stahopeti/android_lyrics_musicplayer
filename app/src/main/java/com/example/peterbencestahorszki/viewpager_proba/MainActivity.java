@@ -62,6 +62,7 @@ public class MainActivity extends AppCompatActivity {
         sp = getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
         editor = sp.edit();
 
+
         setContentView(R.layout.activity_main);
 
         vpPager = (ViewPager) findViewById(R.id.vpPager);
@@ -118,6 +119,8 @@ public class MainActivity extends AppCompatActivity {
         editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, false);
         editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
+
+        editor.putBoolean(Constants.FIRST_RUN, false);
         editor.commit();
 
     }
@@ -311,6 +314,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onResume(){
 
+
         super.onResume();
 
         Log.i(TAG, "onResume playing song title: " + sp.getString(Constants.PLAYING_SONG_TITLE, "default"));
@@ -374,32 +378,4 @@ public class MainActivity extends AppCompatActivity {
         return false;
     }
 
-/*
-    public static void playMusic(){
-
-        String path = sp.getString(Constants.PLAYING_SONG_PATH, null);
-        Boolean isMusicPlaying = sp.getBoolean(Constants.IS_MUSIC_PLAYING, false);
-        int musicPosition = sp.getInt(Constants.PLAYING_MUSIC_POSITION, 0);
-
-        if(!isMusicPlaying) {
-
-            Uri musicUri = Uri.parse(path);
-
-            music = MediaPlayer.create(context, musicUri);
-
-            music.seekTo(musicPosition);
-            music.start();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, true);
-
-        } else {
-
-            editor.putInt(Constants.PLAYING_MUSIC_POSITION, music.getCurrentPosition());
-            music.stop();
-            editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
-
-        }
-
-        editor.commit();
-    }
-*/
 }
