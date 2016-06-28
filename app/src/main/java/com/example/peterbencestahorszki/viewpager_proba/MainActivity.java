@@ -12,6 +12,7 @@ import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.os.Bundle;
 import android.os.IBinder;
+import android.support.annotation.Nullable;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
@@ -33,18 +34,24 @@ import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.ButterKnife.*;
+import butterknife.OnClick;
+import butterknife.Optional;
+
 
 public class MainActivity extends AppCompatActivity {
 
-    String TAG = "MusicPlayback";
+    static String TAG = "xLyrics.MainActivity";
 
     public static Context context;
+
     public MusicPlaybackService myService;
     boolean serviceIsBound = false;
     private BroadcastReceiver broadcastReceiver = null;
 
     FragmentPagerAdapter adapterViewPager;
-    ViewPager vpPager = null;
 
     static String tabBrowser;
     static String tabDownloaded;
@@ -52,74 +59,74 @@ public class MainActivity extends AppCompatActivity {
     static SharedPreferences sp;
     static SharedPreferences.Editor editor;
 
+    @BindView(R.id.docked_playButton)
+    ImageButton docked_playButton;
+
+    @BindView(R.id.docked_textview)
+    TextView docked_textView;
+
+    @BindView(R.id.vpPager)
+    ViewPager vpPager;
+
+    @OnClick(R.id.docked_textview)
+    protected void onTextView(){
+
+        if (!myService.isCurrentlyPlayingNull()) {
+
+            Intent intent = new Intent(context, PlayMusic.class);
+            intent.putExtra("SHOULD_I_START", false);
+            startActivity(intent);
+        }
+
+    }
+
+    @OnClick(R.id.docked_playButton)
+    protected void onPlayButon(){
+
+        if (!myService.isCurrentlyPlayingNull()) {
+            if (myService.isMusicPlaying()) {
+
+                try {
+                    myService.playPauseMusic();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                docked_playButton.setBackgroundResource(R.drawable.playbutton);
+
+            } else {
+
+                try {
+                    myService.playPauseMusic();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                docked_playButton.setBackgroundResource(R.drawable.pausebutton);
+
+            }
+        }
+
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState){
 
         super.onCreate(savedInstanceState);
+        setContentView(R.layout.activity_main);
+        ButterKnife.bind(this);
+        context = getApplicationContext();
 
         registerReciever();
 
         sp = getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
         editor = sp.edit();
 
-
-        setContentView(R.layout.activity_main);
-
-        vpPager = (ViewPager) findViewById(R.id.vpPager);
         adapterViewPager = new MyPagerAdapter(getSupportFragmentManager(), vpPager);
         vpPager.setAdapter(adapterViewPager);
-        context = getApplicationContext();
-        final ImageButton docked_button = (ImageButton) findViewById(R.id.docked_playButton);
-
-        TextView playing = (TextView) findViewById(R.id.docked_textview);
-
-        playing.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (!myService.isCurrentlyPlayingNull()) {
-
-                    Intent intent = new Intent(context, PlayMusic.class);
-                    intent.putExtra("SHOULD_I_START", false);
-                    startActivity(intent);
-                }
-
-            }
-        });
-
-        docked_button.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (!myService.isCurrentlyPlayingNull()) {
-                    if (myService.isMusicPlaying()) {
-
-                        try {
-                            myService.playPauseMusic();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.playbutton);
-
-                    } else {
-
-                        try {
-                            myService.playPauseMusic();
-                        } catch (IOException e) {
-                            e.printStackTrace();
-                        }
-                        (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.pausebutton);
-
-                    }
-                }
-            }
-        });
 
         editor.putBoolean(Constants.IS_MUSIC_PLAYING, false);
         editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, false);
         editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
-
         editor.putBoolean(Constants.FIRST_RUN, false);
         editor.commit();
 
@@ -174,7 +181,7 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onReceive(Context context, Intent intent) {
 
-                (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.playbutton);
+               docked_playButton.setBackgroundResource(R.drawable.playbutton);
 
             }
         };
@@ -186,15 +193,16 @@ public class MainActivity extends AppCompatActivity {
         MusicFile dummy = myService.getCurrentlyPlaying();
 
         if(myService.getCurrentlyPlaying()!=null)
-            ((TextView)findViewById(R.id.docked_textview)).setText(dummy.getTitle());
+
+            docked_textView.setText(dummy.getTitle());
 
         if (myService.isMusicPlaying()) {
 
-            (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.pausebutton);
+            docked_playButton.setBackgroundResource(R.drawable.pausebutton);
 
         } else {
 
-            (findViewById(R.id.docked_playButton)).setBackgroundResource(R.drawable.playbutton);
+            docked_playButton.setBackgroundResource(R.drawable.playbutton);
 
         }
 
@@ -225,17 +233,17 @@ public class MainActivity extends AppCompatActivity {
 
                         String LYRICS = null;
                         while(LYRICS==null){
-                            System.out.println("VAN INTERNET");
+
                             LYRICS = getSongLyrics(
                                     sp.getString(Constants.PLAYING_SONG_ARTIST, null),
                                     sp.getString(Constants.PLAYING_SONG_TITLE, null)
 
                             );
+
                         }
-                        System.out.println("PUTTING STRING IN PREFERENCES");
+
                         editor.putString(Constants.PLAYING_SONG_LYRICS, LYRICS);
                         editor.commit();
-                        System.out.println("COMMITED EDITOR !!! COMMITED EDITOR !!!");
 
                     }catch(Exception e){
                         e.printStackTrace();
@@ -251,36 +259,10 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    //Inserted code, from api README
-    public static String getSongLyrics( String band, String songTitle) throws IOException {
-        List<String> lyrics= new ArrayList<String>();
-
-        String songLyricsURL = "http://www.songlyrics.com";
-        Document doc = Jsoup.connect(songLyricsURL + "/" + band.replace(" ", "-").toLowerCase() + "/" + songTitle.replace(" ", "-").toLowerCase() + "-lyrics/").get();
-        String title = doc.title();
-        System.out.println(title);
-        Element p = doc.select("p.songLyricsV14").get(0);
-        for (Node e: p.childNodes()) {
-            if (e instanceof TextNode) {
-                lyrics.add(((TextNode)e).getWholeText());
-            }
-        }
-
-        String lyricsString = "";
-
-        for(String s : lyrics){
-
-            lyricsString += s;
-
-        }
-
-        return lyricsString;
-    }
-
     @Override
     public void onSaveInstanceState(Bundle savedInstanceState) {
 
-        System.out.println("ON SAVE INSTANCE");
+        Log.i(TAG, "onSaveInstance");
 
         savedInstanceState.putString(Constants.TITLE_BEFORE_BACK_BUTTON,
                 sp.getString(Constants.PLAYING_SONG_TITLE, null));
@@ -308,7 +290,6 @@ public class MainActivity extends AppCompatActivity {
 
             super.onStart();
 
-
     }
 
     @Override
@@ -335,7 +316,6 @@ public class MainActivity extends AppCompatActivity {
     public void onStop(){
 
         super.onStop();
-        System.out.println("Main Activity ONSTOP");
 
     }
 
@@ -346,8 +326,32 @@ public class MainActivity extends AppCompatActivity {
 
         unbindService(mConnect);
 
-        System.out.println("Main Activity ONDESTROY");
+    }
 
+    //Inserted code, from api README
+    public static String getSongLyrics( String band, String songTitle) throws IOException {
+        List<String> lyrics= new ArrayList<String>();
+
+        String songLyricsURL = "http://www.songlyrics.com";
+        Document doc = Jsoup.connect(songLyricsURL + "/" + band.replace(" ", "-").toLowerCase() + "/" + songTitle.replace(" ", "-").toLowerCase() + "-lyrics/").get();
+        String title = doc.title();
+        System.out.println(title);
+        Element p = doc.select("p.songLyricsV14").get(0);
+        for (Node e: p.childNodes()) {
+            if (e instanceof TextNode) {
+                lyrics.add(((TextNode)e).getWholeText());
+            }
+        }
+
+        String lyricsString = "";
+
+        for(String s : lyrics){
+
+            lyricsString += s;
+
+        }
+
+        return lyricsString;
     }
 
     private ServiceConnection mConnect = new ServiceConnection() {
