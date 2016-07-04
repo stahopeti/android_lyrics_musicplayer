@@ -43,33 +43,8 @@ public class MusicPlaybackService extends Service{
 
         Log.i(TAG, "service onBind");
 
-        Handler handler = new Handler(Looper.getMainLooper());
-
-        handler.post(new Runnable() {
-
-            @Override
-            public void run() {
-                Toast.makeText(getApplicationContext(),"Service OnBind",Toast.LENGTH_SHORT).show();
-            }
-        });
-
         sp = getApplicationContext().getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
 
-/*        music.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mp) {
-
-                Intent intent = new Intent(Constants.MUSIC_STOPPED);
-                sendBroadcast(intent);
-                try {
-                    setNewMusic();
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-
-            }
-        });
-*/
         return binder;
 
     }

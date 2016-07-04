@@ -18,21 +18,22 @@
         <activity
             android:name=".MainActivity"
             android:screenOrientation="portrait">
-        </activity>
-        <activity
-            android:name=".PlayMusic"
-            android:screenOrientation="portrait"></activity>
-
-        <service android:name=".MusicPlaybackService"></service>
-
-        <activity android:name=".SplashScreen"
-            android:screenOrientation="portrait">
             <intent-filter>
 
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".PlayMusic"
+            android:screenOrientation="portrait"></activity>
+
+        <service android:name=".MusicPlaybackService"></service>
+<!--
+        <activity android:name=".SplashScreen"
+            android:screenOrientation="portrait">
+
+        </activity>-->
     </application>
 
 </manifest>

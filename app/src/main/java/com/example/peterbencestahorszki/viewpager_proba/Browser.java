@@ -49,7 +49,7 @@ public class Browser extends Fragment {
     public void onCreate(Bundle savedInstance){
 
         super.onCreate(savedInstance);
-        System.out.println("BROWSER ONCREATE");
+
         musicTitles.clear();
         for (int i = 0; i<getArguments().getStringArrayList("someList").size(); i++) {
 
@@ -84,13 +84,8 @@ public class Browser extends Fragment {
 
                 String sharedPrefPath = sp.getString(Constants.PLAYING_SONG_PATH, "default");
 
-                System.out.println("Current sharedpref music path: " + sharedPrefPath);
-
                 Intent intent = new Intent(getActivity(), PlayMusic.class);
 
-
-                System.out.println("LAST CLICKED PATH: \n" +
-                        lastClicked.getPath());
                 editor.putString(Constants.PLAYING_SONG_PATH, lastClicked.getPath());
 
                 String asd = lastClicked.getPath();

@@ -33,6 +33,10 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.ArrayList;
 
+import butterknife.BindView;
+import butterknife.ButterKnife;
+import butterknife.OnClick;
+
 public class PlayMusic extends AppCompatActivity {
 
 
@@ -46,85 +50,64 @@ public class PlayMusic extends AppCompatActivity {
     private SharedPreferences sp = MainActivity.context.getSharedPreferences(Constants.XLYRCS_SHARED_PREFS, MODE_PRIVATE);
     private SharedPreferences.Editor editor;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
+    @BindView(R.id.play_button)
+    ImageButton playButton;
+    @BindView(R.id.seekBackward)
+    ImageButton seekBackwardButton;
+    @BindView(R.id.seekForward)
+    ImageButton seekForwardButton;
+    @BindView(R.id.artist_and_title)
+    TextView artistAndTitle;
+    @BindView(R.id.lyrics_textview)
+    TextView lyricsTextView;
+    @BindView(R.id.lyrics_button)
+    ImageButton lyricsButton;
+    @BindView(R.id.lp_record_textview)
+    TextView lpRecordTextView;
 
+    @OnClick(R.id.play_button)
+    protected void playStopMusic(){
 
-        //en sajat register függvenyem
-        registerReciever();
-
-        editor = sp.edit();
-        editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);
-        editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
-        Bundle bundle = getIntent().getExtras();
-
-        shouldIStart = bundle.getBoolean("SHOULD_I_START");
-
-        LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
-
-        setContentView(R.layout.activity_play_music);
-
-        findViewById(R.id.play_button).setOnClickListener(playStopMusic);
-        findViewById(R.id.seekBackward).setOnClickListener(seekBackwards);
-        findViewById(R.id.seekForward).setOnClickListener(seekForward);
-
-        ((TextView) findViewById(R.id.artist_and_title)).setText(
-                sp.getString(Constants.PLAYING_SONG_ARTIST, null) +
-                "\n" +
-                sp.getString(Constants.PLAYING_SONG_TITLE, null));
-
-        if(LYRICS != null){
-
-            ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
-
+        try {
+            playMusic();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
 
-        (findViewById(R.id.artist_and_title)).invalidate();
+    }
 
+    @OnClick(R.id.seekBackward)
+    protected void seekBackward(){
 
-        RelativeLayout myLL = (RelativeLayout) findViewById(R.id.myLayout);
+        myService.seekBackward();
 
-        ImageButton lyricsButton = (ImageButton) findViewById(R.id.lyrics_button);
+    }
 
-        if(sp.getBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false)){
+    @OnClick(R.id.seekForward)
+    protected void seekForward(){
 
-            setBakelitForeground();
+        myService.seekForward();
 
-            }else{
+    }
+
+    @OnClick(R.id.lyrics_button)
+    protected void onLyricsButton(){
+
+        if (sp.getBoolean(Constants.IS_BAKELIT_FOREGROUND, false)) {
 
             setBakelitBackground();
 
+        } else {
+
+            setBakelitForeground();
+
         }
-
-        lyricsButton.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-
-                if (sp.getBoolean(Constants.IS_BAKELIT_FOREGROUND, false)) {
-
-                    setBakelitBackground();
-
-                } else {
-
-                    setBakelitForeground();
-
-                }
-
-            }
-        });
-
-        editor.commit();
-
-
-        refreshLyrics();
 
     }
 
     private void windUpAnimation(){
 
 
-        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
 
         RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
@@ -133,7 +116,7 @@ public class PlayMusic extends AppCompatActivity {
 
         ra.setInterpolator(new AccelerateInterpolator(1));
         ra.setDuration(7000);
-        lpRecord.startAnimation(ra);
+        lpRecordTextView.startAnimation(ra);
 
         ra.setAnimationListener(new Animation.AnimationListener() {
             @Override
@@ -156,8 +139,6 @@ public class PlayMusic extends AppCompatActivity {
 
     private void windDownAnimation(){
 
-        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
-
         RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
                 0.5f);
@@ -165,13 +146,11 @@ public class PlayMusic extends AppCompatActivity {
 
         ra.setInterpolator(new DecelerateInterpolator(1));
         ra.setDuration(7000);
-        lpRecord.startAnimation(ra);
+        lpRecordTextView.startAnimation(ra);
 
     }
 
     private void rotateAnimation(){
-
-        TextView lpRecord = (TextView) findViewById(R.id.lp_record_textview);
 
         RotateAnimation ra = new RotateAnimation(0.0f, 1080.0f,
                 Animation.RELATIVE_TO_SELF, 0.5f, Animation.RELATIVE_TO_SELF,
@@ -180,7 +159,7 @@ public class PlayMusic extends AppCompatActivity {
         ra.setInterpolator(new LinearInterpolator());
         ra.setDuration(4500);
         ra.setRepeatCount(-1);
-        lpRecord.startAnimation(ra);
+        lpRecordTextView.startAnimation(ra);
 
     }
 
@@ -196,7 +175,7 @@ public class PlayMusic extends AppCompatActivity {
 
                 if(intent.getAction().equals(Constants.MUSIC_STOPPED)) {
 
-                    (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.playbutton);
+                    playButton.setBackgroundResource(R.drawable.playbutton);
                     windDownAnimation();
                 }
                 if(intent.getAction().equals(Constants.START_LP)) {
@@ -210,58 +189,13 @@ public class PlayMusic extends AppCompatActivity {
         getApplicationContext().registerReceiver(broadcastReceiver,filter);
     }
 
-    View.OnClickListener refreshButtonListener = new View.OnClickListener(){
-        @Override
-        public void onClick(View v) {
-
-        refreshLyrics();
-
-        }
-    };
-
-    View.OnClickListener seekForward = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-            myService.seekForward();
-
-        }
-
-
-
-    };
-
-    View.OnClickListener seekBackwards = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-            myService.seekBackward();
-
-        }
-
-
-
-    };
-
-    View.OnClickListener playStopMusic = new View.OnClickListener() {
-        @Override
-        public void onClick(View v) {
-
-            try {
-                playMusic();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-
-        }
-
-    };
-
     private void setBakelitBackground(){
 
         (findViewById(R.id.scroll_lyrics)).setAlpha(1);
-        (findViewById(R.id.lyrics_textview)).setAlpha(1);
-        (findViewById(R.id.lp_record_textview)).setAlpha(0);
+
+        lyricsTextView.setAlpha(1);
+        lpRecordTextView.setAlpha(0);
+
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, false);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false);
         editor.commit();
@@ -272,11 +206,59 @@ public class PlayMusic extends AppCompatActivity {
     private void setBakelitForeground(){
 
         (findViewById(R.id.scroll_lyrics)).setAlpha(0);
-        (findViewById(R.id.lyrics_textview)).setAlpha(0);
-        (findViewById(R.id.lp_record_textview)).setAlpha(1);
+
+        lyricsTextView.setAlpha(0);
+        lpRecordTextView.setAlpha(1);
+
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, true);
         editor.commit();
+
+    }
+
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+
+        registerReciever();
+        setContentView(R.layout.activity_play_music);
+
+        ButterKnife.bind(this);
+
+        editor = sp.edit();
+        editor.putBoolean(Constants.HAS_PLAY_ACTIVITY_STARTED, true);
+        editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, true);
+        Bundle bundle = getIntent().getExtras();
+
+        shouldIStart = bundle.getBoolean("SHOULD_I_START");
+
+        LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
+
+        artistAndTitle.setText(sp.getString(Constants.PLAYING_SONG_ARTIST, null) + "\n"
+                + sp.getString(Constants.PLAYING_SONG_TITLE, null));
+
+        if(LYRICS != null){
+
+            lyricsTextView.setText(LYRICS);
+
+        }
+
+        artistAndTitle.invalidate();
+
+
+        if(sp.getBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false)){
+
+            setBakelitForeground();
+
+        }else{
+
+            setBakelitBackground();
+
+        }
+
+        editor.commit();
+
+        refreshLyrics();
 
     }
 
@@ -287,16 +269,13 @@ public class PlayMusic extends AppCompatActivity {
             LYRICS = sp.getString(Constants.PLAYING_SONG_LYRICS, null);
             if (LYRICS != null){
                 editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS,false);
-                ((TextView) findViewById(R.id.lyrics_textview)).setText(LYRICS);
+                lyricsTextView.setText(LYRICS);
 
                 MusicFile asd = new MusicFile(
                         sp.getString(Constants.PLAYING_SONG_ARTIST, null),
                         sp.getString(Constants.PLAYING_SONG_TITLE, null),
                         sp.getString(Constants.PLAYING_SONG_PATH, null),
                         sp.getString(Constants.PLAYING_SONG_LYRICS, null));
-
-                System.out.println("EZEKET KELLENE SERIALIZALNI: " +
-                        sp.getString(Constants.PLAYING_SONG_PATH, null));
 
                 serialize(
                         sp.getString(Constants.PLAYING_SONG_ARTIST, null),
@@ -314,8 +293,6 @@ public class PlayMusic extends AppCompatActivity {
     public void serialize(String artist, String title, String path, String LYRICS){
 
         MusicFile dummy = new MusicFile(artist,title,path,LYRICS);
-
-        System.out.println("Serializalando: " + dummy.toString());
 
         String fileName = getApplicationContext().getFilesDir().getPath().toString() + "serialized.dat";
 
@@ -349,21 +326,16 @@ public class PlayMusic extends AppCompatActivity {
         }
         if (!serializedFile.exists() || !foundSame){
 
-            System.out.println("FÁJL NEM LÉTEZIK");
-
             try {
                 FileOutputStream out = new FileOutputStream(serializedFile);
 
                 readFromSerialized.add(dummy);
-                System.out.println("SERIALIZALT FAJLOK SZAMA: " + readFromSerialized.size());
 
                 ObjectOutputStream objectOut = new ObjectOutputStream(out);
                 objectOut.writeObject(readFromSerialized);
 
                 objectOut.close();
                 out.close();
-
-                System.out.println("!! SERIALIZALAS KESZ !!");
 
             } catch (FileNotFoundException e) {
                 e.printStackTrace();
@@ -379,12 +351,12 @@ public class PlayMusic extends AppCompatActivity {
 
         if(myService.isMusicPlaying()){
 
-            (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.playbutton);
+            playButton.setBackgroundResource(R.drawable.playbutton);
 
         }
         if(!myService.isMusicPlaying()){
 
-            (findViewById(R.id.play_button)).setBackgroundResource(R.drawable.pausebutton);
+            playButton.setBackgroundResource(R.drawable.pausebutton);
 
         }
         myService.playPauseMusic();
@@ -407,6 +379,8 @@ public class PlayMusic extends AppCompatActivity {
         editor.putBoolean(Constants.SHOULD_I_REFRESH_LYRICS, true);
         editor.commit();
 
+        unbindService(mConnect);
+
     }
 
     private ServiceConnection mConnect = new ServiceConnection() {
@@ -425,8 +399,8 @@ public class PlayMusic extends AppCompatActivity {
                 e.printStackTrace();
             }
 
-            if(!myService.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.playbutton);
-            if(myService.isMusicPlaying()) findViewById(R.id.play_button).setBackgroundResource(R.drawable.pausebutton);
+            if(!myService.isMusicPlaying()) playButton.setBackgroundResource(R.drawable.playbutton);
+            if(myService.isMusicPlaying()) playButton.setBackgroundResource(R.drawable.pausebutton);
 
 
         }
