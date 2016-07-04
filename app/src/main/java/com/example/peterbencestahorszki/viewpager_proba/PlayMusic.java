@@ -190,12 +190,21 @@ public class PlayMusic extends AppCompatActivity {
     }
 
     private void setBakelitBackground(){
+<<<<<<< HEAD
 
         (findViewById(R.id.scroll_lyrics)).setAlpha(1);
 
         lyricsTextView.setAlpha(1);
         lpRecordTextView.setAlpha(0);
 
+=======
+
+        (findViewById(R.id.scroll_lyrics)).setAlpha(1);
+
+        lyricsTextView.setAlpha(1);
+        lpRecordTextView.setAlpha(0);
+
+>>>>>>> master
         editor.putBoolean(Constants.IS_BAKELIT_FOREGROUND, false);
         editor.putBoolean(Constants.SHOULD_BAKELIT_BE_FOREGROUND, false);
         editor.commit();

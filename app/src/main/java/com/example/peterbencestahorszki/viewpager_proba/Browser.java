@@ -26,11 +26,14 @@ import java.util.ArrayList;
 public class Browser extends Fragment {
 
     private ListView list;
+
     private ArrayAdapter<String> adapter;
     private static ArrayList<String> musicTitles = new ArrayList<String>();
     private ArrayList<MusicFile> musicFilesOnStorage = new ArrayList<MusicFile>();
+
     private ContentResolver cR;
     private MusicFile lastClicked = null;
+
     private static SharedPreferences sp;
     private static SharedPreferences.Editor editor;
 
